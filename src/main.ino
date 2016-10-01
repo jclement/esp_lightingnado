@@ -15,8 +15,15 @@
 #define RESET_DURATION 30
 
 #include <NeoPixelBus.h>
+
 NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
 int led_count = -1;
+
+#include "LightMode.hpp"
+#include "Slide/Slide.hpp"
+#include "Twinkle/Twinkle.hpp"
+LightMode *currentMode = NULL;
+char currentModeChar=' ';
 
 // MQTT
 #include <AsyncMqttClient.h>
@@ -72,7 +79,8 @@ String readSetting(const char* key) {
 }
 
 void setup() {
-
+  randomSeed(analogRead(0));
+  
   Serial.begin(115200);
 
   SPIFFS.begin();
@@ -192,8 +200,9 @@ void setup() {
   strip->ClearTo(RgbColor(0,0,0));
   strip->Show();
 
-  strip->SetPixelColor(2, RgbColor(255,0,0));
-  strip->Show();
+  // default mode?
+  //currentMode = new Slide(strip, "{\"delay\": 100, \"length\": 5, \"right\": false, \"color\":[200,100,0]}");
+  //currentModeChar = 'S';
 }
 
 /* ========================================================================================================
@@ -237,6 +246,37 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
   Serial.println(topic);
   Serial.print("  payload: ");
   Serial.println(payload);
+  if (len > 0) {
+    char targetModeChar = payload[0];
+    char* modePayload = payload;
+    modePayload++;
+    if (targetModeChar != currentModeChar) {
+      // new mode!
+      delete currentMode;
+      currentMode = NULL;
+      currentModeChar = ' ';
+
+      // create mode, if we can find it
+      switch (targetModeChar) {
+        case 'S':
+          currentMode = new Slide(strip, modePayload);
+          break;
+        case 'T':
+            currentMode = new Twinkle(strip, modePayload);
+            break;
+      }
+
+      if (currentMode != NULL) {
+        currentModeChar = targetModeChar;
+        Serial.print("New Mode Selected: ");
+        Serial.println(targetModeChar);
+      }
+    } else {
+      if (currentMode != NULL) {
+        currentMode->update(modePayload);
+      }
+    }
+  }
 }
 
 void onMqttPublish(uint16_t packetId) {
@@ -252,9 +292,9 @@ void onMqttPublish(uint16_t packetId) {
    ======================================================================================================== */
 
 void loop() {
-  // sample publish
-  // uint16_t packedId = mqttClient.publish("test/lol", 0, true, "test 1");
-  strip->RotateRight(1);
-  strip->Show();
-  delay(20);
+  if (currentMode != NULL) {
+    currentMode->tick();
+  } else {
+    delay(10);
+  }
 }
