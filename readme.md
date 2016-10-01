@@ -7,7 +7,7 @@
 I'm using an ESP12E DEVKIT V2 (ESP + USB programmer board) so my pins correspond to that:
 
 * **RESET (D7)** - Momentarily grounding this pin within the first couple seconds of startup resets the configuration and enables the captive configuration portal
-* **LET DATA (RXA)** - This pin is used for the data signal for the WS2812 LED strip.
+* **LED DATA (RXA)** - This pin is used for the data signal for the WS2812 LED strip.
 
 ## Controlling it
 
@@ -18,7 +18,7 @@ The device will connect to the configured MQTT server and operate on two topics.
 
 ## Lighting Modes
 
-The lighting mode is changed by pushing messages onto the control channel.  The messages always start with a single character that represents the target lighting mode and is followed by additional data (usually JSON) to pass into that lighting mode.
+The lighting mode is changed by pushing messages onto the control channel.  The messages always start with a single character (because that scales...) that represents the target lighting mode and is followed by additional data (usually JSON) to pass into that lighting mode.
 
 If the specific lighting mode is already active it'll perform an update on the lighting mode rather than switching to it.  This allows for animated transitions between states within a lighting mode.
 
