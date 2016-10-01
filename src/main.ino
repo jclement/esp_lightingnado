@@ -22,6 +22,7 @@ int led_count = -1;
 #include "LightMode.hpp"
 #include "Slide/Slide.hpp"
 #include "Twinkle/Twinkle.hpp"
+#include "Percent/Percent.hpp"
 LightMode *currentMode = NULL;
 char currentModeChar=' ';
 
@@ -80,7 +81,7 @@ String readSetting(const char* key) {
 
 void setup() {
   randomSeed(analogRead(0));
-  
+
   Serial.begin(115200);
 
   SPIFFS.begin();
@@ -263,6 +264,9 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
           break;
         case 'T':
             currentMode = new Twinkle(strip, modePayload);
+            break;
+        case 'P':
+            currentMode = new Percent(strip, modePayload);
             break;
       }
 
