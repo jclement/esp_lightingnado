@@ -22,6 +22,27 @@ The lighting mode is changed by pushing messages onto the control channel.  The 
 
 If the specific lighting mode is already active it'll perform an update on the lighting mode rather than switching to it.  This allows for animated transitions between states within a lighting mode.
 
+### Ants
+
+Marching ants.  Sorta..  Takes an array of colors and then lays those out in a repeating pattern on the strip and then cycles them left or right.
+
+```
+A{
+  "delay": 100,
+  "colors": [
+    [100,0,0],
+    [0,100,0],
+    [0,0,100]
+  ],
+  right: true
+}
+```
+
+* **Delay** is the delay (ms) between updates
+* **Right** are we moving right? or left?
+* **Colors** is an array of RGB sets for the colors on the strip
+
+
 ### Percent
 
 This one turns the lighting strip into a big progress bar.  Changes are animated (both color and percent).

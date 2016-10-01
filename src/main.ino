@@ -20,6 +20,7 @@ NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
 int led_count = -1;
 
 #include "LightMode.hpp"
+#include "Ants/Ants.hpp"
 #include "Slide/Slide.hpp"
 #include "Twinkle/Twinkle.hpp"
 #include "Percent/Percent.hpp"
@@ -267,6 +268,9 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
             break;
         case 'P':
             currentMode = new Percent(strip, modePayload);
+            break;
+        case 'A':
+            currentMode = new Ants(strip, modePayload);
             break;
       }
 
