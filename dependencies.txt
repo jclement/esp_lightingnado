@@ -1,0 +1,6 @@
+Library Storage: C:\Users\jclement\Dropbox\esp8266\esp12e_wifi_mqtt_base\.piolibdeps
+[ ID  ] Name             Compatibility         "Authors": Description
+
+[ 346 ] AsyncMqttClient  arduino, espressif8266 "Marvin Roger": An Arduino for ESP8266 asynchronous MQTT client implementation | @0.3.0
+[ 305 ] ESPAsyncTCP      arduino, espressif8266 "Hristo Gochkov": Asynchronous TCP Library for ESP8266 and ESP32 | @b4d3565585
+[ 567 ] WifiManager      arduino, espressif8266 "tzapu": ESP8266 WiFi Connection manager with fallback web configuration portal | @0.12
