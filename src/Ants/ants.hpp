@@ -10,11 +10,13 @@ public:
   ~Ants();
   void update(char* data);
   void tick();
+  char* description();
 private:
   NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
   bool directionRight = true;
   int delayDuration = 10;
   void processData(char* data);
+  const char* name = "Ants";
 };
 
 #endif

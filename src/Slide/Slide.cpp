@@ -20,6 +20,12 @@ void Slide::tick() {
   delay(this->delayDuration);
 }
 
+char* Slide::description() {
+  char* description = (char*) malloc(strlen(this->name));
+  sprintf(description, "%s", this->name);
+  return description;
+}
+
 void Slide::processData(char* data) {
   DynamicJsonBuffer jsonBuffer;
   JsonObject& root = jsonBuffer.parseObject(data);

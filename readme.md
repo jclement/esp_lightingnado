@@ -13,7 +13,7 @@ I'm using an ESP12E DEVKIT V2 (ESP + USB programmer board) so my pins correspond
 
 The device will connect to the configured MQTT server and operate on two topics.
 
-* **esp/(node name)/status** publishes states messages when it connects to MQTT and disconnects
+* **esp/(node name)/status** publishes states messages when it connects to MQTT and disconnects, and when the lighting mode changes
 * **esp/(node name)/control** accepts control messages to change lighting modes (see below for samples)
 
 ## Lighting Modes

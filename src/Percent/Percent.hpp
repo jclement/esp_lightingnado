@@ -10,6 +10,7 @@ public:
   ~Percent();
   void update(char* data);
   void tick();
+  char* description();
 private:
   NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
 
@@ -25,6 +26,8 @@ private:
 
   int delayDuration = 10;
   void processData(bool init, char* data);
+
+  const char* name = "Percent";
 };
 
 #endif

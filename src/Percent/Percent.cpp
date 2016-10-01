@@ -33,6 +33,12 @@ void Percent::tick() {
   delay(this->delayDuration);
 }
 
+char* Percent::description() {
+  char* description = (char*) malloc(strlen(this->name) + 10);
+  sprintf(description, "%s (%d%%)", this->name, (int) (100.0*this->targetPercent));
+  return description;
+}
+
 void Percent::processData(bool init, char* data) {
   DynamicJsonBuffer jsonBuffer;
   JsonObject& root = jsonBuffer.parseObject(data);
@@ -51,10 +57,10 @@ void Percent::processData(bool init, char* data) {
     this->targetPercent = root["percent"].as<float>()/100.0;
   }
 
+  this->progress = 0;
   if (init) {
-    this->progress = 1;
-  } else {
-    this->progress = 0;
+    // no need to fade from black
+    this->color = this->targetColor;
   }
 
   if (this->delayDuration < 1) {

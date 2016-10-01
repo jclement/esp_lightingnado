@@ -12,6 +12,9 @@ public:
 
   // called per loop.  This is responsible for updating LED strip + any required delays
   virtual void tick() {};
+
+  // name for status messages
+  virtual char* description() {return NULL;}
 };
 
 #endif

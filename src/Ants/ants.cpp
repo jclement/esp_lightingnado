@@ -20,6 +20,12 @@ void Ants::tick() {
   delay(this->delayDuration);
 }
 
+char* Ants::description() {
+  char* description = (char*) malloc(strlen(this->name));
+  sprintf(description, "%s", this->name);
+  return description;
+}
+
 void Ants::processData(char* data) {
   DynamicJsonBuffer jsonBuffer;
   JsonObject& root = jsonBuffer.parseObject(data);

@@ -251,7 +251,7 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
   if (len > 0) {
     char targetModeChar = payload[0];
     char* modePayload = payload;
-    modePayload++;
+    modePayload++; // strip the first char
     if (targetModeChar != currentModeChar) {
       // new mode!
       delete currentMode;
@@ -276,12 +276,31 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
 
       if (currentMode != NULL) {
         currentModeChar = targetModeChar;
-        Serial.print("New Mode Selected: ");
-        Serial.println(targetModeChar);
+
+        // push status message to MQTT
+        char* description = currentMode->description();
+        char* msg = (char*) malloc(strlen(description) + 10);
+        strcpy(msg, "Switch: ");
+        strcat(msg, description);
+        mqttClient.publish(topic_status, 2, true, msg);
+        delete description;
+        delete msg;
+
+      } else {
+        mqttClient.publish(topic_status, 2, true, "Mode Cleared");
       }
     } else {
       if (currentMode != NULL) {
         currentMode->update(modePayload);
+
+        // push status message to MQTT
+        char* description = currentMode->description();
+        char* msg = (char*) malloc(strlen(description) + 10);
+        strcpy(msg, "Update: ");
+        strcat(msg, description);
+        mqttClient.publish(topic_status, 2, true, msg);
+        delete description;
+        delete msg;
       }
     }
   }

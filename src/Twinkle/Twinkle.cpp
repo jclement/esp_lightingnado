@@ -25,6 +25,12 @@ void Twinkle::tick() {
   delay(this->delayDuration);
 }
 
+char* Twinkle::description() {
+  char* description = (char*) malloc(strlen(this->name));
+  sprintf(description, "%s", this->name);
+  return description;
+}
+
 void Twinkle::processData(char* data) {
   DynamicJsonBuffer jsonBuffer;
   JsonObject& root = jsonBuffer.parseObject(data);
