@@ -1,14 +1,6 @@
 #ifndef TWINKLE_H
 #define TWINKLE_H
 
-/* =========== JSON data format ====================================
-{
-  "delay": 10,          // delay per update in (ms)
-  "decay": 5,           // rate at which twinkles loose intensite per update
-  "spawn": 10           // rate at which new twinkles are spawned.  Once, every N updates. ish
-}
-*/
-
 #include <NeoPixelBus.h>
 #include "LightMode.hpp"
 

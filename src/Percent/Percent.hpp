@@ -1,14 +1,6 @@
 #ifndef PERCENT_H
 #define PERCENT_H
 
-/* =========== JSON data format ====================================
-{
-  "delay": 10,          // delay per update in (ms)
-  "color": [255,0,0],   // target color for lights
-  "percent": 10         // Percent of light strip to illuminate
-}
-*/
-
 #include <NeoPixelBus.h>
 #include "LightMode.hpp"
 

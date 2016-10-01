@@ -1,15 +1,6 @@
 #ifndef SLIDE_H
 #define SLIDE_H
 
-/* =========== JSON data format ====================================
-{
-  "delay": 100,          // delay per update in (ms)
-  "length": 5,           // length of moving segement
-  "right": false,        // direction of travel
-  "color":[200,100,0]    // colors R,G,B
-}
-*/
-
 #include <NeoPixelBus.h>
 #include "LightMode.hpp"
 
