@@ -303,6 +303,8 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
 
       } else {
         mqttClient.publish(topic_status, 2, true, "Mode Cleared");
+        strip->ClearTo(RgbColor(0,0,0));
+        strip->Show();
       }
     } else {
       if (currentMode != NULL) {
