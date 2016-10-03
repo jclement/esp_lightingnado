@@ -1,9 +1,11 @@
 #include "Percent.hpp"
 #include <ArduinoJson.h>
 
-Percent::Percent(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data) {
+Percent::Percent(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data, int start, int length) {
   this->strip = strip;
   this->processData(true, data);
+  this->start = start;
+  this->length = length;
 }
 
 void Percent::update(char* data) {
@@ -25,7 +27,7 @@ void Percent::tick() {
   }
 
   this->strip->ClearTo(RgbColor(0,0,0));
-  for(int i=0; i<(this->percent * this->strip->PixelCount()); i++) {
+  for(int i=this->start; i<(this->start + (this->percent * this->length)); i++) {
       this->strip->SetPixelColor(i, this->color);
   }
 

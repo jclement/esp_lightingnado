@@ -6,13 +6,16 @@
 
 class Percent: public LightMode {
 public:
-  Percent(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data);
+  Percent(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data, int start, int length);
   ~Percent();
   void update(char* data);
   void tick();
   char* description();
 private:
   NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
+
+  int start;
+  int length;
 
   float percent = 0;
   float startingPercent = 0;

@@ -18,6 +18,8 @@
 
 NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
 int led_count = -1;
+int led_inset_start = 0;
+int led_inset_length = 999;
 
 #include "LightMode.hpp"
 #include "Ants/Ants.hpp"
@@ -128,6 +130,12 @@ void setup() {
   WiFiManagerParameter custom_led_count("led_count", "led count", "1", 6);
   wifiManager.addParameter(&custom_led_count);
 
+  WiFiManagerParameter custom_led_inset_start("led_inset_start", "led inset start", "", 6);
+  wifiManager.addParameter(&custom_led_inset_start);
+
+  WiFiManagerParameter custom_led_inset_length("led_inset_length", "led inset length", "", 6);
+  wifiManager.addParameter(&custom_led_inset_length);
+
   //fetches ssid and pass from eeprom and tries to connect
   //if it does not connect it starts an access point
   wifiManager.autoConnect();
@@ -144,6 +152,8 @@ void setup() {
     saveSetting("mqtt_pass", (char *) custom_mqtt_pass.getValue());
     saveSetting("node_name", (char *) custom_node_name.getValue());
     saveSetting("led_count", (char *) custom_led_count.getValue());
+    saveSetting("led_inset_start", (char *) custom_led_inset_start.getValue());
+    saveSetting("led_inset_length", (char *) custom_led_inset_length.getValue());
   }
 
   // read settings from configuration
@@ -153,6 +163,11 @@ void setup() {
   readSetting("mqtt_pass").toCharArray(mqtt_pass, sizeof(mqtt_pass));
   readSetting("node_name").toCharArray(node_name, sizeof(node_name));
   led_count = readSetting("led_count").toInt();
+  led_inset_start = readSetting("led_inset_start").toInt();
+  led_inset_length = readSetting("led_inset_length").toInt();
+  if (led_inset_length > (led_count - led_inset_start)) {
+    led_inset_length = led_count - led_inset_start;
+  };
 
   Serial.print("Node Name: ");
   Serial.println(node_name);
@@ -267,7 +282,7 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
             currentMode = new Twinkle(strip, modePayload);
             break;
         case 'P':
-            currentMode = new Percent(strip, modePayload);
+            currentMode = new Percent(strip, modePayload, led_inset_start, led_inset_length);
             break;
         case 'A':
             currentMode = new Ants(strip, modePayload);
@@ -288,6 +303,8 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
 
       } else {
         mqttClient.publish(topic_status, 2, true, "Mode Cleared");
+        strip->ClearTo(RgbColor(0,0,0));
+        strip->Show();
       }
     } else {
       if (currentMode != NULL) {
