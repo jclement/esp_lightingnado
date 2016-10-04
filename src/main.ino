@@ -40,6 +40,7 @@ char* mqtt_pass;
 // Name for this ESP
 char* node_name;
 char* topic_status;
+char* topic_status_mode;
 char* topic_control;
 
 /* ========================================================================================================
@@ -186,13 +187,20 @@ void setup() {
   Serial.print("LED Count: ");
   Serial.println(led_count);
 
+  topic_status = (char*) malloc(strlen(node_name) + 12);
   strcat(topic_status, "esp/");
   strcat(topic_status, node_name);
   strcat(topic_status, "/status");
 
+  topic_status = (char*) malloc(strlen(node_name) + 13);
   strcat(topic_control, "esp/");
   strcat(topic_control, node_name);
   strcat(topic_control, "/control");
+
+  topic_status_mode = (char*) malloc(strlen(node_name) + 17);
+  strcat(topic_status_mode, "esp/");
+  strcat(topic_status_mode, node_name);
+  strcat(topic_status_mode, "/status/mode");
 
   mqttClient.onConnect(onMqttConnect);
   mqttClient.onDisconnect(onMqttDisconnect);
@@ -227,10 +235,6 @@ void setup() {
   strip->Begin();
   strip->ClearTo(RgbColor(0,0,0));
   strip->Show();
-
-  // default mode?
-  //currentMode = new Slide(strip, "{\"delay\": 100, \"length\": 5, \"right\": false, \"color\":[200,100,0]}");
-  //currentModeChar = 'S';
 }
 
 /* ========================================================================================================
@@ -263,8 +267,7 @@ void onMqttUnsubscribe(uint16_t packetId) {
 }
 
 void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
-  Serial.println("** Disconnected from the broker **");
-  Serial.println("Reconnecting to MQTT...");
+  Serial.println("** Disconnected from the broker.  Reconnection... **");
   mqttClient.connect();
 }
 
@@ -273,8 +276,6 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
   Serial.println("** Publish received **");
   Serial.print("  topic: ");
   Serial.println(topic);
-  Serial.print("  payload: ");
-  Serial.println(payload);
   if (len > 0) {
     if (newPayload != NULL) {
       delete newPayload;
@@ -318,12 +319,12 @@ void switchMode(char* payload) {
       char* msg = (char*) malloc(strlen(description) + 10);
       strcpy(msg, "Switch: ");
       strcat(msg, description);
-      mqttClient.publish(topic_status, 2, true, msg);
+      mqttClient.publish(topic_status_mode, 2, true, msg);
       delete description;
       delete msg;
 
     } else {
-      mqttClient.publish(topic_status, 2, true, "Mode Cleared");
+      mqttClient.publish(topic_status_mode, 2, true, "Mode Cleared");
       strip->ClearTo(RgbColor(0,0,0));
       strip->Show();
     }
@@ -336,7 +337,7 @@ void switchMode(char* payload) {
       char* msg = (char*) malloc(strlen(description) + 10);
       strcpy(msg, "Update: ");
       strcat(msg, description);
-      mqttClient.publish(topic_status, 2, true, msg);
+      mqttClient.publish(topic_status_mode, 2, true, msg);
       delete description;
       delete msg;
     }
