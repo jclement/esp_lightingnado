@@ -165,6 +165,7 @@ void setup() {
   led_count = readSetting("led_count").toInt();
   led_inset_start = readSetting("led_inset_start").toInt();
   led_inset_length = readSetting("led_inset_length").toInt();
+
   if (led_inset_length > (led_count - led_inset_start)) {
     led_inset_length = led_count - led_inset_start;
   };
@@ -257,6 +258,7 @@ void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
   mqttClient.connect();
 }
 
+char* newPayload = NULL;
 void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
   Serial.println("** Publish received **");
   Serial.print("  topic: ");
@@ -264,61 +266,69 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
   Serial.print("  payload: ");
   Serial.println(payload);
   if (len > 0) {
-    char targetModeChar = payload[0];
-    char* modePayload = payload;
-    modePayload++; // strip the first char
-    if (targetModeChar != currentModeChar) {
-      // new mode!
-      delete currentMode;
-      currentMode = NULL;
-      currentModeChar = ' ';
+    if (newPayload != NULL) {
+      delete newPayload;
+    }
+    newPayload = (char *) malloc(len);
+    strcpy(newPayload, payload);
+  }
+}
 
-      // create mode, if we can find it
-      switch (targetModeChar) {
-        case 'S':
-          currentMode = new Slide(strip, modePayload);
+void switchMode(char* payload) {
+  char targetModeChar = payload[0];
+  char* modePayload = payload;
+  modePayload++; // strip the first char
+  if (targetModeChar != currentModeChar) {
+    // new mode!
+    delete currentMode;
+    currentMode = NULL;
+    currentModeChar = ' ';
+
+    // create mode, if we can find it
+    switch (targetModeChar) {
+      case 'S':
+        currentMode = new Slide(strip, modePayload);
+        break;
+      case 'T':
+          currentMode = new Twinkle(strip, modePayload);
           break;
-        case 'T':
-            currentMode = new Twinkle(strip, modePayload);
-            break;
-        case 'P':
-            currentMode = new Percent(strip, modePayload, led_inset_start, led_inset_length);
-            break;
-        case 'A':
-            currentMode = new Ants(strip, modePayload);
-            break;
-      }
+      case 'P':
+          currentMode = new Percent(strip, modePayload, led_inset_start, led_inset_length);
+          break;
+      case 'A':
+          currentMode = new Ants(strip, modePayload);
+          break;
+    }
 
-      if (currentMode != NULL) {
-        currentModeChar = targetModeChar;
+    if (currentMode != NULL) {
+      currentModeChar = targetModeChar;
 
-        // push status message to MQTT
-        char* description = currentMode->description();
-        char* msg = (char*) malloc(strlen(description) + 10);
-        strcpy(msg, "Switch: ");
-        strcat(msg, description);
-        mqttClient.publish(topic_status, 2, true, msg);
-        delete description;
-        delete msg;
+      // push status message to MQTT
+      char* description = currentMode->description();
+      char* msg = (char*) malloc(strlen(description) + 10);
+      strcpy(msg, "Switch: ");
+      strcat(msg, description);
+      mqttClient.publish(topic_status, 2, true, msg);
+      delete description;
+      delete msg;
 
-      } else {
-        mqttClient.publish(topic_status, 2, true, "Mode Cleared");
-        strip->ClearTo(RgbColor(0,0,0));
-        strip->Show();
-      }
     } else {
-      if (currentMode != NULL) {
-        currentMode->update(modePayload);
+      mqttClient.publish(topic_status, 2, true, "Mode Cleared");
+      strip->ClearTo(RgbColor(0,0,0));
+      strip->Show();
+    }
+  } else {
+    if (currentMode != NULL) {
+      currentMode->update(modePayload);
 
-        // push status message to MQTT
-        char* description = currentMode->description();
-        char* msg = (char*) malloc(strlen(description) + 10);
-        strcpy(msg, "Update: ");
-        strcat(msg, description);
-        mqttClient.publish(topic_status, 2, true, msg);
-        delete description;
-        delete msg;
-      }
+      // push status message to MQTT
+      char* description = currentMode->description();
+      char* msg = (char*) malloc(strlen(description) + 10);
+      strcpy(msg, "Update: ");
+      strcat(msg, description);
+      mqttClient.publish(topic_status, 2, true, msg);
+      delete description;
+      delete msg;
     }
   }
 }
@@ -355,5 +365,11 @@ void loop() {
       Serial.println("WiFi Disconnection... Resetting.");
       ESP.reset();
     }
+  }
+
+  if (newPayload != NULL) {
+    switchMode(newPayload);
+    delete newPayload;
+    newPayload = NULL;
   }
 }
