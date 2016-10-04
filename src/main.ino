@@ -17,9 +17,9 @@
 #include <NeoPixelBus.h>
 
 NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
-int led_count = -1;
-int led_inset_start = 0;
-int led_inset_length = 999;
+uint led_count = -1;
+uint led_inset_start = 0;
+uint led_inset_length = 999;
 
 #include "LightMode.hpp"
 #include "Ants/Ants.hpp"
@@ -32,15 +32,15 @@ char currentModeChar=' ';
 // MQTT
 #include <AsyncMqttClient.h>
 AsyncMqttClient mqttClient;
-char mqtt_server[40];
+char* mqtt_server;
 uint mqtt_port;
-char mqtt_user[20];
-char mqtt_pass[20];
+char* mqtt_user;
+char* mqtt_pass;
 
 // Name for this ESP
-char node_name[20];
-char topic_status[50];
-char topic_control[50];
+char* node_name;
+char* topic_status;
+char* topic_control;
 
 /* ========================================================================================================
                                            __
@@ -68,18 +68,28 @@ void saveSetting(const char* key, char* value) {
   f.close();
 }
 
-String readSetting(const char* key) {
+char* readSetting(const char* key) {
   char filename[80] = "/config_";
   strcat(filename, key);
 
-  String output;
-
   File f = SPIFFS.open(filename, "r");
-  if (f) {
-    output = f.readString();
-  }
+  char* output = (char *) malloc(f.size());
+  f.readBytes(output, f.size());
   f.close();
   return output;
+}
+
+uint readIntSetting(const char* key) {
+  char filename[80] = "/config_";
+  strcat(filename, key);
+
+  File f = SPIFFS.open(filename, "r");
+  char* output = (char *) malloc(f.size());
+  f.readBytes(output, f.size());
+  f.close();
+  uint result = atoi(output);
+  free(output);
+  return result;
 }
 
 void setup() {
@@ -157,14 +167,14 @@ void setup() {
   }
 
   // read settings from configuration
-  readSetting("mqtt_server").toCharArray(mqtt_server, sizeof(mqtt_server));
-  mqtt_port = readSetting("mqtt_port").toInt();
-  readSetting("mqtt_user").toCharArray(mqtt_user, sizeof(mqtt_user));
-  readSetting("mqtt_pass").toCharArray(mqtt_pass, sizeof(mqtt_pass));
-  readSetting("node_name").toCharArray(node_name, sizeof(node_name));
-  led_count = readSetting("led_count").toInt();
-  led_inset_start = readSetting("led_inset_start").toInt();
-  led_inset_length = readSetting("led_inset_length").toInt();
+  mqtt_server = readSetting("mqtt_server");
+  mqtt_port = readIntSetting("mqtt_port");
+  mqtt_user = readSetting("mqtt_user");
+  mqtt_pass = readSetting("mqtt_pass");
+  node_name = readSetting("node_name");
+  led_count = readIntSetting("led_count");
+  led_inset_start = readIntSetting("led_inset_start");
+  led_inset_length = readIntSetting("led_inset_length");
 
   if (led_inset_length > (led_count - led_inset_start)) {
     led_inset_length = led_count - led_inset_start;
