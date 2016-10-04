@@ -36,7 +36,7 @@ void Percent::tick() {
 }
 
 char* Percent::description() {
-  char* description = (char*) malloc(strlen(this->name) + 10);
+  char* description = (char*) malloc(strlen(this->name) + 7);
   sprintf(description, "%s (%d%%)", this->name, (int) (100.0*this->targetPercent));
   return description;
 }
