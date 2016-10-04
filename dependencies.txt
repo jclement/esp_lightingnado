@@ -1,7 +1,0 @@
-[ ID  ] Name             Compatibility         "Authors": Description
------------------------------------------------------------------------------------------------------------------------
-[ 64  ] ArduinoJson      arduino, atmelavr, atmelsam, espressif8266, intel_arc32, microchippic32, nordicnrf51, teensy, timsp430 "Benoit Blanchon": An elegant and efficient JSON library for embedded systems | @5.6.7
-[ 346 ] AsyncMqttClient  arduino, espressif8266 "Marvin Roger": An Arduino for ESP8266 asynchronous MQTT client implementation | @0.3.0
-[ 305 ] ESPAsyncTCP      arduino, espressif8266 "Hristo Gochkov": Asynchronous TCP Library for ESP8266 and ESP32 | @b4d3565585
-[ 547 ] NeoPixelBus      arduino, atmelavr, atmelsam, espressif8266, intel_arc32, microchippic32, nordicnrf51, teensy, timsp430 "Michael Miller": A library that makes controlling NeoPixels (WS2811, WS2812 & SK6812) and DotStars (ADA102) easy.  Supports most Arduino platforms.  Support for RGBW pixels.  Includes seperate RgbColor, RgbwColor, HslColor, and HsbColor objects.  Includes an animator class that helps create asyncronous animations.  For Esp8266 it has three methods of sending NeoPixel data, DMA, UART, and Bit Bang; and two methods of sending DotStar data, hardware SPI and software SPI. | @2.2.3
-[ 567 ] WifiManager      arduino, espressif8266 "tzapu": ESP8266 WiFi Connection manager with fallback web configuration portal | @0.12

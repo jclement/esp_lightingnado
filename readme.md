@@ -1,6 +1,14 @@
 # esp_lightingnado
 
-> I watched Sharknado 4 times yesterday so, for some reason, lightingnado came to mind for a project name.
+> I watched Sharknado 4 yesterday so, for some reason, lightingnado came to mind for a project name.
+
+## Dependencies
+
+* ArduinoJson (64)
+* AsyncMqttClient (346)
+* ESPAsyncTCP (305)
+* NeoPixelBus (547)
+* WifiManager (567)
 
 ## Pins
 
