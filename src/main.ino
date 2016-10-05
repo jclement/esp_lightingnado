@@ -89,6 +89,7 @@ uint readIntSetting(const char* key) {
   File f = SPIFFS.open(filename, "r");
   char* output = (char *) malloc(f.size()+1);
   f.readBytes(output, f.size());
+  output[f.size()] = '\0';
   f.close();
   uint result = atoi(output);
   free(output);
