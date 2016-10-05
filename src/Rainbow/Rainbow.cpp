@@ -15,9 +15,9 @@ void Rainbow::tick() {
   this->lastRun = millis();
 
   if (this->directionRight) {
-    this->strip->RotateRight(1);
+    this->strip->RotateRight(this->step);
   } else {
-    this->strip->RotateLeft(1);
+    this->strip->RotateLeft(this->step);
   }
   this->strip->Show();
 }
@@ -54,12 +54,20 @@ void Rainbow::processData(char* data) {
     this->brightness = root["brightness"].as<float>() / 100.0;
   }
 
+  if (root.containsKey("step")) {
+    this->brightness = root["step"].as<int>();
+  }
+
   if (root.containsKey("right")) {
     this->directionRight = root["right"];
   }
 
   if (this->delayDuration < 1) {
     this->delayDuration = 1;
+  }
+
+  if (this->step < 1) {
+    this->step = 1;
   }
 
   if (this->brightness < 0) {

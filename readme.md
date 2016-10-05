@@ -94,9 +94,10 @@ T{"delay": 10, "rate": 0.1, "decay": 5}
 This one yields a pretty cycling rainbow
 
 ```
-R{"delay": 10, "right": true, "brightness": 75}
+R{"delay": 10, "right": true, "step": 5, "brightness": 75}
 ```
 
 * **Delay** is the delay (ms) between updates
 * **Right** is it sliding right... or left
 * **Brightness** is brightness from 0 to 100 (%)
+* **Step** is the number of pixels to jump each iteration

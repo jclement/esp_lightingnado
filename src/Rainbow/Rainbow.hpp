@@ -16,6 +16,7 @@ private:
   bool directionRight = true;
   int delayDuration = 10;
   float brightness = 1;
+  int step = 1;
   void processData(char* data);
   const char* name = "Rainbow";
   unsigned long lastRun = 0;
