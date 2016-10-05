@@ -1,0 +1,84 @@
+#include "Rainbow.hpp"
+#include <ArduinoJson.h>
+
+Rainbow::Rainbow(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data) {
+  this->strip = strip;
+  this->processData(data);
+}
+
+void Rainbow::update(char* data) {
+  this->processData(data);
+}
+
+void Rainbow::tick() {
+  if (abs(millis() - this->lastRun) < this->delayDuration) return;
+  this->lastRun = millis();
+
+  if (this->directionRight) {
+    this->strip->RotateRight(1);
+  } else {
+    this->strip->RotateLeft(1);
+  }
+  this->strip->Show();
+}
+
+char* Rainbow::description() {
+  char* description = (char*) malloc(strlen(this->name));
+  sprintf(description, "%s", this->name);
+  return description;
+}
+
+RgbColor wheel(uint8_t position)
+{
+	position = 255 - position;
+	if (position < 85) {
+		return  RgbColor(255 - position * 3, 0, position * 3);
+	} else if (position < 170) {
+		position -= 85;
+		return RgbColor(0, position * 3, 255 - position * 3);
+	} else {
+		position -= 170;
+		return  RgbColor(position * 3, 255 - position * 3, 0);
+	}
+}
+
+void Rainbow::processData(char* data) {
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject& root = jsonBuffer.parseObject(data);
+
+  if (root.containsKey("delay")) {
+    this->delayDuration = root["delay"];
+  }
+
+  if (root.containsKey("brightness")) {
+    this->brightness = root["brightness"].as<float>() / 100.0;
+  }
+
+  if (root.containsKey("right")) {
+    this->directionRight = root["right"];
+  }
+
+  if (this->delayDuration < 1) {
+    this->delayDuration = 1;
+  }
+
+  if (this->brightness < 0) {
+    this->brightness = 0;
+  }
+
+  if (this->brightness > 1) {
+    this->brightness = 1;
+  }
+
+  for(int i=0; i<this->strip->PixelCount(); i++) {
+    RgbColor color = wheel(255 * i / this->strip->PixelCount());
+    this->strip->SetPixelColor(i, RgbColor::LinearBlend(RgbColor(0,0,0), color, this->brightness));
+  }
+
+  this->strip->Show();
+
+}
+
+Rainbow::~Rainbow() {
+
+}

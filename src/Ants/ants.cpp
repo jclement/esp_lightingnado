@@ -11,7 +11,7 @@ void Ants::update(char* data) {
 }
 
 void Ants::tick() {
-  if ((millis() - this->lastRun) >= this->delayDuration) return;
+  if (abs(millis() - this->lastRun) < this->delayDuration) return;
   this->lastRun = millis();
 
   this->strip->Show();

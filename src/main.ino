@@ -26,6 +26,7 @@ uint led_inset_length = 999;
 #include "Slide/Slide.hpp"
 #include "Twinkle/Twinkle.hpp"
 #include "Percent/Percent.hpp"
+#include "Rainbow/Rainbow.hpp"
 LightMode *currentMode = NULL;
 char currentModeChar=' ';
 
@@ -74,8 +75,9 @@ char* readSetting(const char* key) {
   strcat(filename, key);
 
   File f = SPIFFS.open(filename, "r");
-  char* output = (char *) malloc(f.size());
+  char* output = (char *) malloc(f.size()+1);
   f.readBytes(output, f.size());
+  output[f.size()] = '\0';
   f.close();
   return output;
 }
@@ -85,7 +87,7 @@ uint readIntSetting(const char* key) {
   strcat(filename, key);
 
   File f = SPIFFS.open(filename, "r");
-  char* output = (char *) malloc(f.size());
+  char* output = (char *) malloc(f.size()+1);
   f.readBytes(output, f.size());
   f.close();
   uint result = atoi(output);
@@ -188,17 +190,17 @@ void setup() {
   Serial.println(led_count);
 
   topic_status = (char*) malloc(strlen(node_name) + 12);
-  strcat(topic_status, "esp/");
+  strcpy(topic_status, "esp/");
   strcat(topic_status, node_name);
   strcat(topic_status, "/status");
 
-  topic_status = (char*) malloc(strlen(node_name) + 13);
-  strcat(topic_control, "esp/");
+  topic_control = (char*) malloc(strlen(node_name) + 13);
+  strcpy(topic_control, "esp/");
   strcat(topic_control, node_name);
   strcat(topic_control, "/control");
 
   topic_status_mode = (char*) malloc(strlen(node_name) + 17);
-  strcat(topic_status_mode, "esp/");
+  strcpy(topic_status_mode, "esp/");
   strcat(topic_status_mode, node_name);
   strcat(topic_status_mode, "/status/mode");
 
@@ -267,7 +269,7 @@ void onMqttUnsubscribe(uint16_t packetId) {
 }
 
 void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
-  Serial.println("** Disconnected from the broker.  Reconnection... **");
+  //Serial.println("** Disconnected from the broker.  Reconnecting... **");
   mqttClient.connect();
 }
 
@@ -308,6 +310,9 @@ void switchMode(char* payload) {
           break;
       case 'A':
           currentMode = new Ants(strip, modePayload);
+          break;
+      case 'R':
+          currentMode = new Rainbow(strip, modePayload);
           break;
     }
 
@@ -364,7 +369,7 @@ void loop() {
     currentMode->tick();
   }
 
-  if (millis() - lastWifiCheck > 5000) {
+  if (abs(millis() - lastWifiCheck) > 5000) {
     // check for Wifi every 5 seconds and bounce if it's disconnected
     lastWifiCheck = millis();
     if (WiFi.status() == WL_DISCONNECTED)
@@ -379,4 +384,5 @@ void loop() {
     delete newPayload;
     newPayload = NULL;
   }
+
 }

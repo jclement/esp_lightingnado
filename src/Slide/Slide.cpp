@@ -11,7 +11,7 @@ void Slide::update(char* data) {
 }
 
 void Slide::tick() {
-  if ((millis() - this->lastRun) >= this->delayDuration) return;
+  if (abs(millis() - this->lastRun) < this->delayDuration) return;
   this->lastRun = millis();
 
   if (this->directionRight) {

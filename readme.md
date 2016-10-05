@@ -87,3 +87,16 @@ T{"delay": 10, "rate": 0.1, "decay": 5}
 * **Delay** is the delay (ms) between updates
 * **Rate** is the probability (0..1) that a star will be spawned in any given update
 * **Decay** is the rate (1..255) the star intensity drops per update
+
+
+### Rainbow
+
+This one yields a pretty cycling rainbow
+
+```
+R{"delay": 10, "right": true, "brightness": 75}
+```
+
+* **Delay** is the delay (ms) between updates
+* **Right** is it sliding right... or left
+* **Brightness** is brightness from 0 to 100 (%)
