@@ -25,7 +25,6 @@ void Twinkle::tick() {
   }
 
   this->strip->Show();
-  delay(this->delayDuration);
 }
 
 char* Twinkle::description() {

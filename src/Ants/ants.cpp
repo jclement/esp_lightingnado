@@ -20,7 +20,6 @@ void Ants::tick() {
   } else {
     this->strip->RotateLeft(1);
   }
-  delay(this->delayDuration);
 }
 
 char* Ants::description() {

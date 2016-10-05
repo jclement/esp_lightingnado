@@ -34,7 +34,6 @@ void Percent::tick() {
   }
 
   this->strip->Show();
-  delay(this->delayDuration);
 }
 
 char* Percent::description() {

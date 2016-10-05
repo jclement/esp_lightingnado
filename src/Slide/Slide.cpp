@@ -14,13 +14,13 @@ void Slide::tick() {
   if ((millis() - this->lastRun) >= this->delayDuration) return;
   this->lastRun = millis();
 
-  this->strip->Show();
   if (this->directionRight) {
     this->strip->RotateRight(1);
   } else {
     this->strip->RotateLeft(1);
   }
-  delay(this->delayDuration);
+
+  this->strip->Show();
 }
 
 char* Slide::description() {
