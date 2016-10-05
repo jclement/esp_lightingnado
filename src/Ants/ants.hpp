@@ -17,6 +17,7 @@ private:
   int delayDuration = 10;
   void processData(char* data);
   const char* name = "Ants";
+  unsigned long lastRun = 0;
 };
 
 #endif

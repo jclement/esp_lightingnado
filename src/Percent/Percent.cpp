@@ -13,6 +13,8 @@ void Percent::update(char* data) {
 }
 
 void Percent::tick() {
+  if ((millis() - this->lastRun) >= this->delayDuration) return;
+  this->lastRun = millis();
 
   // if we're still moving to the target state, crank the progress forward and generate new "current" values
   if (this->progress < 1) {

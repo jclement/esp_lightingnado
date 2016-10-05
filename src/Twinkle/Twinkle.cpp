@@ -11,6 +11,9 @@ void Twinkle::update(char* data) {
 }
 
 void Twinkle::tick() {
+  if ((millis() - this->lastRun) >= this->delayDuration) return;
+  this->lastRun = millis();
+
   if (random(this->spawnRate) == 0) {
     this->strip->SetPixelColor(random(this->strip->PixelCount()-1), RgbColor(255,255,random(255)));
   }

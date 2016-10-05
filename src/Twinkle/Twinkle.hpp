@@ -18,6 +18,7 @@ private:
   int decayRate = 5;
   void processData(char* data);
   const char* name = "Twinkle";
+  unsigned long lastRun = 0;
 };
 
 #endif

@@ -31,6 +31,7 @@ private:
   void processData(bool init, char* data);
 
   const char* name = "Percent";
+  unsigned long lastRun = 0;
 };
 
 #endif

@@ -357,20 +357,16 @@ void onMqttPublish(uint16_t packetId) {
    ======================================================================================================== */
 
 unsigned long lastWifiCheck=0;
-unsigned long time=0;
 
 void loop() {
 
   if (currentMode != NULL) {
     currentMode->tick();
-  } else {
-    delay(10);
   }
 
-  time = millis();
-  if (time - lastWifiCheck > 5000) {
+  if (millis() - lastWifiCheck > 5000) {
     // check for Wifi every 5 seconds and bounce if it's disconnected
-    lastWifiCheck = time;
+    lastWifiCheck = millis();
     if (WiFi.status() == WL_DISCONNECTED)
     {
       Serial.println("WiFi Disconnection... Resetting.");

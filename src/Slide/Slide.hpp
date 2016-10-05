@@ -19,6 +19,7 @@ private:
   int delayDuration = 10;
   void processData(char* data);
   const char* name = "Slide";
+  unsigned long lastRun = 0;
 };
 
 #endif
