@@ -59,15 +59,18 @@ void saveConfigCallback()
   shouldSaveConfig = true;
 }
 
-void saveSetting(const char* key, char* value) {
+void saveSetting(const char* key, WiFiManagerParameter setting) {
   char filename[80] = "/config_";
   strcat(filename, key);
+
+  const char *value = setting.getValue();
 
   File f = SPIFFS.open(filename, "w");
   if (f) {
     f.print(value);
   }
   f.close();
+
 }
 
 char* readSetting(const char* key) {
@@ -102,6 +105,7 @@ void setup() {
   Serial.begin(115200);
 
   SPIFFS.begin();
+  //SPIFFS.format();
 
   WiFiManager wifiManager;
 
@@ -138,7 +142,7 @@ void setup() {
   WiFiManagerParameter custom_mqtt_pass("pass", "mqtt pass", "", 20);
   wifiManager.addParameter(&custom_mqtt_pass);
 
-  WiFiManagerParameter custom_node_name("nodename", "node name", "rename_me", sizeof(node_name));
+  WiFiManagerParameter custom_node_name("nodename", "node name", "", 50);
   wifiManager.addParameter(&custom_node_name);
 
   WiFiManagerParameter custom_led_count("led_count", "led count", "1", 6);
@@ -160,14 +164,14 @@ void setup() {
 
   if (shouldSaveConfig) {
     Serial.println("Saving configuration...");
-    saveSetting("mqtt_server", (char *) custom_mqtt_server.getValue());
-    saveSetting("mqtt_port", (char *) custom_mqtt_port.getValue());
-    saveSetting("mqtt_user", (char *) custom_mqtt_user.getValue());
-    saveSetting("mqtt_pass", (char *) custom_mqtt_pass.getValue());
-    saveSetting("node_name", (char *) custom_node_name.getValue());
-    saveSetting("led_count", (char *) custom_led_count.getValue());
-    saveSetting("led_inset_start", (char *) custom_led_inset_start.getValue());
-    saveSetting("led_inset_length", (char *) custom_led_inset_length.getValue());
+    saveSetting("mqtt_server", custom_mqtt_server);
+    saveSetting("mqtt_port", custom_mqtt_port);
+    saveSetting("mqtt_user", custom_mqtt_user);
+    saveSetting("mqtt_pass", custom_mqtt_pass);
+    saveSetting("node_name", custom_node_name);
+    saveSetting("led_count", custom_led_count);
+    saveSetting("led_inset_start", custom_led_inset_start);
+    saveSetting("led_inset_length", custom_led_inset_length);
   }
 
   // read settings from configuration
