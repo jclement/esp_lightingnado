@@ -1,9 +1,28 @@
 #include "Rainbow.hpp"
 #include <ArduinoJson.h>
 
+RgbColor wheel(uint8_t position)
+{
+	position = 255 - position;
+	if (position < 85) {
+		return  RgbColor(255 - position * 3, 0, position * 3);
+	} else if (position < 170) {
+		position -= 85;
+		return RgbColor(0, position * 3, 255 - position * 3);
+	} else {
+		position -= 170;
+		return  RgbColor(position * 3, 255 - position * 3, 0);
+	}
+}
+
 Rainbow::Rainbow(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data) {
   this->strip = strip;
   this->processData(data);
+
+  for(int i=0; i<this->strip->PixelCount(); i++) {
+    RgbColor color = wheel(255 * i / this->strip->PixelCount());
+    this->strip->SetPixelColor(i, RgbColor::LinearBlend(RgbColor(0,0,0), color, this->brightness));
+  }
 }
 
 void Rainbow::update(char* data) {
@@ -26,20 +45,6 @@ char* Rainbow::description() {
   char* description = (char*) malloc(strlen(this->name));
   sprintf(description, "%s", this->name);
   return description;
-}
-
-RgbColor wheel(uint8_t position)
-{
-	position = 255 - position;
-	if (position < 85) {
-		return  RgbColor(255 - position * 3, 0, position * 3);
-	} else if (position < 170) {
-		position -= 85;
-		return RgbColor(0, position * 3, 255 - position * 3);
-	} else {
-		position -= 170;
-		return  RgbColor(position * 3, 255 - position * 3, 0);
-	}
 }
 
 void Rainbow::processData(char* data) {
@@ -77,13 +82,6 @@ void Rainbow::processData(char* data) {
   if (this->brightness > 1) {
     this->brightness = 1;
   }
-
-  for(int i=0; i<this->strip->PixelCount(); i++) {
-    RgbColor color = wheel(255 * i / this->strip->PixelCount());
-    this->strip->SetPixelColor(i, RgbColor::LinearBlend(RgbColor(0,0,0), color, this->brightness));
-  }
-
-  this->strip->Show();
 
 }
 
