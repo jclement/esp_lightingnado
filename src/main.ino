@@ -105,7 +105,6 @@ void setup() {
   Serial.begin(115200);
 
   SPIFFS.begin();
-  //SPIFFS.format();
 
   WiFiManager wifiManager;
 
@@ -124,6 +123,7 @@ void setup() {
   Serial.println("");
   if (reset) {
     Serial.println("Resetting");
+    SPIFFS.format();
     wifiManager.resetSettings();
   }
 
