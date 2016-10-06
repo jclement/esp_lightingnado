@@ -101,3 +101,15 @@ R{"delay": 10, "right": true, "step": 5, "brightness": 75}
 * **Right** is it sliding right... or left
 * **Brightness** is brightness from 0 to 100 (%)
 * **Step** is the number of pixels to jump each iteration
+
+### Tracker
+
+This lights up specified pixels and fades them out
+
+```
+K{"data": [1,2,3,100], "decay": 10, "color": [255,0,0]}
+```
+
+* **Data** LEDs to turn on (0-100 - scales for LED string)
+* **Color** [R,G,B] for color
+* **Decay** Rate at which the colors drop off

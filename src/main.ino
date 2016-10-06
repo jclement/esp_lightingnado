@@ -25,6 +25,7 @@ uint led_inset_length = 999;
 #include "Ants/Ants.hpp"
 #include "Slide/Slide.hpp"
 #include "Twinkle/Twinkle.hpp"
+#include "Tracker/Tracker.hpp"
 #include "Percent/Percent.hpp"
 #include "Rainbow/Rainbow.hpp"
 LightMode *currentMode = NULL;
@@ -318,6 +319,9 @@ void switchMode(char* payload) {
           break;
       case 'R':
           currentMode = new Rainbow(strip, modePayload);
+          break;
+      case 'K':
+          currentMode = new Tracker(strip, modePayload);
           break;
     }
 
