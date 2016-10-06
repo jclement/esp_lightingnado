@@ -12,7 +12,7 @@ void Tracker::update(char* data) {
 }
 
 void Tracker::tick() {
-  if (abs(millis() - this->lastRun) < 10) return;
+  if (abs(millis() - this->lastRun) < 50) return;
   this->lastRun = millis();
 
   for(int i=0; i<strip->PixelCount(); i++) {
@@ -50,7 +50,6 @@ void Tracker::processData(char* data) {
     int pixel = (this->strip->PixelCount()-1) * root["data"][i].as<float>()/100.0;
     this->strip->SetPixelColor(pixel, this->color);
   }
-
 }
 
 Tracker::~Tracker() {

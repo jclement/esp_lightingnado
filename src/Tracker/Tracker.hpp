@@ -13,7 +13,7 @@ public:
   char* description();
 private:
   NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
-  int decayRate = 5;
+  int decayRate = 1;
   void processData(char* data);
   const char* name = "Tracker";
   RgbColor color = RgbColor(200,200,200);
