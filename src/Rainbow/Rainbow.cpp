@@ -53,7 +53,7 @@ void Rainbow::processData(char* data) {
   }
 
   if (root.containsKey("step")) {
-    this->brightness = root["step"].as<int>();
+    this->step = root["step"].as<int>();
   }
 
   if (root.containsKey("right")) {
