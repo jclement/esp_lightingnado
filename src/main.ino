@@ -13,6 +13,8 @@
 // PIN used to reset configuration.  Enables internal Pull Up.  Ground to reset.
 #define PIN_RESET 13 // Labeled D7 on ESP12E DEVKIT V2
 #define RESET_DURATION 30
+#define PS_OUTPUT 12
+#define PS_CHECK 14
 
 #include <NeoPixelBus.h>
 
@@ -112,6 +114,9 @@ void setup() {
   // short pause on startup to look for settings RESET
   Serial.println("Waiting for reset");
   pinMode(PIN_RESET, INPUT_PULLUP);
+  pinMode(PS_CHECK, INPUT);
+  pinMode(PS_OUTPUT, OUTPUT);
+  digitalWrite(PS_OUTPUT, LOW);
   bool reset = false;
   int resetTimeRemaining = RESET_DURATION;
   while (!reset && resetTimeRemaining-- > 0) {
@@ -370,7 +375,14 @@ void checkAndResetWifi()
 }
 
 void loop() {
-  if (currentMode != NULL) currentMode->tick();
+  if (currentMode != NULL) {    
+    digitalWrite(PS_OUTPUT, HIGH);
+    // don't try to send data unless the power supply confirms it's good
+    if (digitalRead(PS_CHECK) > 0) {
+      currentMode->tick();
+    } else {
+    }
+  }
   checkAndResetWifi();
   processMessage();
 }
