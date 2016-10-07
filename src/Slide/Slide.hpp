@@ -10,7 +10,7 @@ public:
   ~Slide();
   void update(char* data);
   void tick();
-  char* description();
+  const char* description();
 private:
   NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
   RgbColor color = RgbColor(255,255,255);
@@ -18,7 +18,6 @@ private:
   bool directionRight = true;
   int delayDuration = 10;
   void processData(char* data);
-  const char* name = "Slide";
   unsigned long lastRun = 0;
 };
 

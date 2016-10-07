@@ -10,7 +10,7 @@ public:
   ~Tracker();
   void update(char* data);
   void tick();
-  char* description();
+  const char* description();
 private:
   NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
   int decayRate = 1;

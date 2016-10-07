@@ -213,9 +213,7 @@ void setup() {
   mqttClient.onConnect(onMqttConnect);
   mqttClient.onDisconnect(onMqttDisconnect);
   mqttClient.onSubscribe(onMqttSubscribe);
-  mqttClient.onUnsubscribe(onMqttUnsubscribe);
   mqttClient.onMessage(onMqttMessage);
-  mqttClient.onPublish(onMqttPublish);
 
   mqttClient.setServer(mqtt_server, mqtt_port);
 
@@ -270,38 +268,34 @@ void onMqttSubscribe(uint16_t packetId, uint8_t qos) {
   }
 }
 
-void onMqttUnsubscribe(uint16_t packetId) {
-  Serial.println("** Unsubscribe acknowledged **");
-}
-
 void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
-  //Serial.println("** Disconnected from the broker.  Reconnecting... **");
+  Serial.println("** Disconnected from the broker.  Reconnecting... **");
   mqttClient.connect();
 }
 
 char* newPayload = NULL;
 void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
-  Serial.println("** Publish received **");
-  Serial.print("  topic: ");
-  Serial.println(topic);
+  // if we haven't finished processing the current payload, skip this one
+  if (newPayload != NULL) return;
   if (len > 0) {
-    if (newPayload != NULL) {
-      delete newPayload;
-    }
-    newPayload = (char *) malloc(len);
+    newPayload = (char *) malloc(len+1);
     strcpy(newPayload, payload);
+    newPayload[len] = '\0';
   }
 }
 
-void switchMode(char* payload) {
-  char targetModeChar = payload[0];
-  char* modePayload = payload;
+void processMessage() {
+  if (newPayload == NULL) return;
+
+  char targetModeChar = newPayload[0];
+  char* modePayload = newPayload;
   modePayload++; // strip the first char
+
   if (targetModeChar != currentModeChar) {
-    // new mode!
-    delete currentMode;
+    // New mode.  Dispose of the current one.
+    delete(currentMode);
     currentMode = NULL;
-    currentModeChar = ' ';
+    currentModeChar = '\0';
 
     // create mode, if we can find it
     switch (targetModeChar) {
@@ -329,14 +323,9 @@ void switchMode(char* payload) {
       currentModeChar = targetModeChar;
 
       // push status message to MQTT
-      char* description = currentMode->description();
-      char* msg = (char*) malloc(strlen(description) + 10);
-      strcpy(msg, "Switch: ");
-      strcat(msg, description);
+      char msg[100] = "Switch:";
+      strcat(msg, currentMode->description());
       mqttClient.publish(topic_status_mode, 2, true, msg);
-      delete description;
-      delete msg;
-
     } else {
       mqttClient.publish(topic_status_mode, 2, true, "Mode Cleared");
       strip->ClearTo(RgbColor(0,0,0));
@@ -347,18 +336,14 @@ void switchMode(char* payload) {
       currentMode->update(modePayload);
 
       // push status message to MQTT
-      char* description = currentMode->description();
-      char* msg = (char*) malloc(strlen(description) + 10);
-      strcpy(msg, "Update: ");
-      strcat(msg, description);
+      char msg[100] = "Update:";
+      strcat(msg, currentMode->description());
       mqttClient.publish(topic_status_mode, 2, true, msg);
-      delete description;
-      delete msg;
     }
   }
-}
 
-void onMqttPublish(uint16_t packetId) {
+  free(newPayload);
+  newPayload = NULL;
 }
 
 /* ========================================================================================================
@@ -371,13 +356,8 @@ void onMqttPublish(uint16_t packetId) {
    ======================================================================================================== */
 
 unsigned long lastWifiCheck=0;
-
-void loop() {
-
-  if (currentMode != NULL) {
-    currentMode->tick();
-  }
-
+void checkAndResetWifi()
+{
   if (abs(millis() - lastWifiCheck) > 5000) {
     // check for Wifi every 5 seconds and bounce if it's disconnected
     lastWifiCheck = millis();
@@ -387,11 +367,10 @@ void loop() {
       ESP.reset();
     }
   }
+}
 
-  if (newPayload != NULL) {
-    switchMode(newPayload);
-    delete newPayload;
-    newPayload = NULL;
-  }
-
+void loop() {
+  if (currentMode != NULL) currentMode->tick();
+  checkAndResetWifi();
+  processMessage();
 }

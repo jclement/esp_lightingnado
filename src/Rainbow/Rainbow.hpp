@@ -10,7 +10,7 @@ public:
   ~Rainbow();
   void update(char* data);
   void tick();
-  char* description();
+  const char* description();
 private:
   NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
   bool directionRight = true;
@@ -18,7 +18,6 @@ private:
   float brightness = 1;
   int step = 1;
   void processData(char* data);
-  const char* name = "Rainbow";
   unsigned long lastRun = 0;
 };
 

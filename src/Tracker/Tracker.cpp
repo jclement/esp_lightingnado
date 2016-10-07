@@ -24,10 +24,8 @@ void Tracker::tick() {
   this->strip->Show();
 }
 
-char* Tracker::description() {
-  char* description = (char*) malloc(strlen(this->name));
-  sprintf(description, "%s", this->name);
-  return description;
+const char* Tracker::description() {
+  return "Tracker";
 }
 
 void Tracker::processData(char* data) {

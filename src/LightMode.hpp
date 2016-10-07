@@ -14,7 +14,8 @@ public:
   virtual void tick() {};
 
   // name for status messages
-  virtual char* description() {return NULL;}
+  virtual const char* description() {return NULL;}
+
 };
 
 #endif

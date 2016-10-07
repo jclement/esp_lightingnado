@@ -18,11 +18,6 @@ RgbColor wheel(uint8_t position)
 Rainbow::Rainbow(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data) {
   this->strip = strip;
   this->processData(data);
-
-  for(int i=0; i<this->strip->PixelCount(); i++) {
-    RgbColor color = wheel(255 * i / this->strip->PixelCount());
-    this->strip->SetPixelColor(i, RgbColor::LinearBlend(RgbColor(0,0,0), color, this->brightness));
-  }
 }
 
 void Rainbow::update(char* data) {
@@ -41,10 +36,8 @@ void Rainbow::tick() {
   this->strip->Show();
 }
 
-char* Rainbow::description() {
-  char* description = (char*) malloc(strlen(this->name));
-  sprintf(description, "%s", this->name);
-  return description;
+const char* Rainbow::description() {
+  return "Rainbow";
 }
 
 void Rainbow::processData(char* data) {
@@ -81,6 +74,11 @@ void Rainbow::processData(char* data) {
 
   if (this->brightness > 1) {
     this->brightness = 1;
+  }
+
+  for(int i=0; i<this->strip->PixelCount(); i++) {
+    RgbColor color = wheel(255 * i / this->strip->PixelCount());
+    this->strip->SetPixelColor(i, RgbColor::LinearBlend(RgbColor(0,0,0), color, this->brightness));
   }
 
 }

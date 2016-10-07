@@ -23,10 +23,8 @@ void Slide::tick() {
   this->strip->Show();
 }
 
-char* Slide::description() {
-  char* description = (char*) malloc(strlen(this->name));
-  sprintf(description, "%s", this->name);
-  return description;
+const char* Slide::description() {
+  return "Slide";
 }
 
 void Slide::processData(char* data) {

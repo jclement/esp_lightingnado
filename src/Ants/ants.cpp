@@ -22,10 +22,8 @@ void Ants::tick() {
   }
 }
 
-char* Ants::description() {
-  char* description = (char*) malloc(strlen(this->name));
-  sprintf(description, "%s", this->name);
-  return description;
+const char* Ants::description() {
+  return "Ants";
 }
 
 void Ants::processData(char* data) {

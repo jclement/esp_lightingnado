@@ -27,10 +27,8 @@ void Twinkle::tick() {
   this->strip->Show();
 }
 
-char* Twinkle::description() {
-  char* description = (char*) malloc(strlen(this->name));
-  sprintf(description, "%s", this->name);
-  return description;
+const char* Twinkle::description() {
+  return "Twinkle";
 }
 
 void Twinkle::processData(char* data) {

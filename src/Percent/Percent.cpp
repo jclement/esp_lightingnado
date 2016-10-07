@@ -36,10 +36,8 @@ void Percent::tick() {
   this->strip->Show();
 }
 
-char* Percent::description() {
-  char* description = (char*) malloc(strlen(this->name) + 7);
-  sprintf(description, "%s (%d%%)", this->name, (int) (100.0*this->targetPercent));
-  return description;
+const char* Percent::description() {
+  return this->name;
 }
 
 void Percent::processData(bool init, char* data) {
@@ -69,6 +67,8 @@ void Percent::processData(bool init, char* data) {
   if (this->delayDuration < 1) {
     this->delayDuration = 1;
   }
+
+  sprintf(this->name, "Percent (%d%%)", this->targetPercent);
 }
 
 Percent::~Percent() {
