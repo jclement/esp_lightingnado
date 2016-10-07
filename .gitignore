@@ -3,3 +3,4 @@
 .gcc-flags.json
 .piolibdeps
 *.sublime-workspace
+.DS_Store
