@@ -51,5 +51,4 @@ void Tracker::processData(char* data) {
 }
 
 Tracker::~Tracker() {
-
 }

@@ -41,8 +41,8 @@ const char* Percent::description() {
 }
 
 void Percent::processData(bool init, char* data) {
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& root = jsonBuffer.parseObject(data);
+  StaticJsonBuffer<500> buf;
+  JsonObject& root = buf.parseObject(data);
 
   if (root.containsKey("delay")) {
     this->delayDuration = root["delay"];

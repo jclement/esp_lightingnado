@@ -28,8 +28,8 @@ const char* Slide::description() {
 }
 
 void Slide::processData(char* data) {
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& root = jsonBuffer.parseObject(data);
+  StaticJsonBuffer<500> buf;
+  JsonObject& root = buf.parseObject(data);
 
   if (root.containsKey("length")) {
     this->length = root["length"];
