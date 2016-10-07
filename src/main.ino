@@ -28,6 +28,7 @@ uint led_inset_length = 999;
 #include "Tracker/Tracker.hpp"
 #include "Percent/Percent.hpp"
 #include "Rainbow/Rainbow.hpp"
+
 LightMode *currentMode = NULL;
 char currentModeChar=' ';
 
@@ -273,23 +274,20 @@ void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
   mqttClient.connect();
 }
 
-char* newPayload = NULL;
+bool hasNewPayload = false;
+char newPayload[1000] = "";
+
 void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
   // if we haven't finished processing the current payload, skip this one
-  if (newPayload != NULL) return;
-  if (len > 0) {
-    newPayload = (char *) malloc(len+1);
-    strcpy(newPayload, payload);
-    newPayload[len] = '\0';
-  }
+  if (hasNewPayload) return;
+  strcpy(newPayload, payload);
+  hasNewPayload = true;
 }
 
 void processMessage() {
-  if (newPayload == NULL) return;
 
   char targetModeChar = newPayload[0];
-  char* modePayload = newPayload;
-  modePayload++; // strip the first char
+  char* modePayload = newPayload + 1;
 
   if (targetModeChar != currentModeChar) {
     // New mode.  Dispose of the current one.
@@ -303,31 +301,31 @@ void processMessage() {
         currentMode = new Slide(strip, modePayload);
         break;
       case 'T':
-          currentMode = new Twinkle(strip, modePayload);
-          break;
+        currentMode = new Twinkle(strip, modePayload);
+        break;
       case 'P':
-          currentMode = new Percent(strip, modePayload, led_inset_start, led_inset_length);
-          break;
+        currentMode = new Percent(strip, modePayload, led_inset_start, led_inset_length);
+        break;
       case 'A':
-          currentMode = new Ants(strip, modePayload);
-          break;
+        currentMode = new Ants(strip, modePayload);
+        break;
       case 'R':
-          currentMode = new Rainbow(strip, modePayload);
-          break;
+        currentMode = new Rainbow(strip, modePayload);
+        break;
       case 'K':
-          currentMode = new Tracker(strip, modePayload);
-          break;
+        currentMode = new Tracker(strip, modePayload);
+        break;
     }
 
     if (currentMode != NULL) {
       currentModeChar = targetModeChar;
 
       // push status message to MQTT
-      char msg[100] = "Switch:";
-      strcat(msg, currentMode->description());
-      mqttClient.publish(topic_status_mode, 2, true, msg);
+      //char msg[100] = "Switch:";
+      //strcat(msg, currentMode->description());
+      //mqttClient.publish(topic_status_mode, 2, true, msg);
     } else {
-      mqttClient.publish(topic_status_mode, 2, true, "Mode Cleared");
+      //mqttClient.publish(topic_status_mode, 2, true, "Mode Cleared");
       strip->ClearTo(RgbColor(0,0,0));
       strip->Show();
     }
@@ -336,14 +334,12 @@ void processMessage() {
       currentMode->update(modePayload);
 
       // push status message to MQTT
-      char msg[100] = "Update:";
-      strcat(msg, currentMode->description());
-      mqttClient.publish(topic_status_mode, 2, true, msg);
+      //char msg[100] = "Update:";
+      //strcat(msg, currentMode->description());
+      //mqttClient.publish(topic_status_mode, 2, true, msg);
     }
   }
 
-  free(newPayload);
-  newPayload = NULL;
 }
 
 /* ========================================================================================================
@@ -372,5 +368,8 @@ void checkAndResetWifi()
 void loop() {
   if (currentMode != NULL) currentMode->tick();
   checkAndResetWifi();
-  processMessage();
+  if (hasNewPayload) {
+    processMessage();
+    hasNewPayload = false;
+  }
 }
