@@ -416,9 +416,6 @@ void loop() {
     }
   }
 
-  Serial.println(digitalRead(PS_CHECK));
-  delay(20);
-
   checkAndResetWifi();
 
   if (hasUnprocessedMessage) {
