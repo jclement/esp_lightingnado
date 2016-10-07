@@ -321,11 +321,11 @@ void processMessage() {
       currentModeChar = targetModeChar;
 
       // push status message to MQTT
-      //char msg[100] = "Switch:";
-      //strcat(msg, currentMode->description());
-      //mqttClient.publish(topic_status_mode, 2, true, msg);
+      char msg[100] = "Switch:";
+      strcat(msg, currentMode->description());
+      mqttClient.publish(topic_status_mode, 2, true, msg);
     } else {
-      //mqttClient.publish(topic_status_mode, 2, true, "Mode Cleared");
+      mqttClient.publish(topic_status_mode, 2, true, "Mode Cleared");
       strip->ClearTo(RgbColor(0,0,0));
       strip->Show();
     }
@@ -334,9 +334,9 @@ void processMessage() {
       currentMode->update(modePayload);
 
       // push status message to MQTT
-      //char msg[100] = "Update:";
-      //strcat(msg, currentMode->description());
-      //mqttClient.publish(topic_status_mode, 2, true, msg);
+      char msg[100] = "Update:";
+      strcat(msg, currentMode->description());
+      mqttClient.publish(topic_status_mode, 2, true, msg);
     }
   }
 
