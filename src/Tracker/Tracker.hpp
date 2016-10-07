@@ -12,10 +12,9 @@ public:
   void tick();
   const char* description();
 private:
-  NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
-  int decayRate = 1;
   void processData(char* data);
-  const char* name = "Tracker";
+  NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
+  int decayRate = 10;
   RgbColor color = RgbColor(200,200,200);
   unsigned long lastRun = 0;
 };

@@ -1,5 +1,5 @@
 #include "Percent.hpp"
-#include <ArduinoJson.h>
+#include "ArduinoJson.h"
 
 Percent::Percent(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data, int start, int length) {
   this->strip = strip;

@@ -1,5 +1,5 @@
 #include "Ants.hpp"
-#include <ArduinoJson.h>
+#include "ArduinoJson.h"
 
 Ants::Ants(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data) {
   this->strip = strip;

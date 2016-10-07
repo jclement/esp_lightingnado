@@ -1,5 +1,5 @@
 #include "Twinkle.hpp"
-#include <ArduinoJson.h>
+#include "ArduinoJson.h"
 
 Twinkle::Twinkle(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data) {
   this->strip = strip;
@@ -32,8 +32,8 @@ const char* Twinkle::description() {
 }
 
 void Twinkle::processData(char* data) {
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& root = jsonBuffer.parseObject(data);
+  StaticJsonBuffer<500> buf;
+  JsonObject& root = buf.parseObject(data);
 
   if (root.containsKey("delay")) {
     this->delayDuration = root["delay"];

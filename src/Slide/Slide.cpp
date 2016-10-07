@@ -1,5 +1,5 @@
 #include "Slide.hpp"
-#include <ArduinoJson.h>
+#include "ArduinoJson.h"
 
 Slide::Slide(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data) {
   this->strip = strip;

@@ -1,5 +1,5 @@
 #include "Rainbow.hpp"
-#include <ArduinoJson.h>
+#include "ArduinoJson.h"
 
 RgbColor wheel(uint8_t position)
 {

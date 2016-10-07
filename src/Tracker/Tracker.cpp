@@ -1,6 +1,5 @@
 #include "Tracker.hpp"
-#include <ArduinoJson.h>
-#include "arduino.h"
+#include "ArduinoJson.h"
 
 Tracker::Tracker(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data) {
   this->strip = strip;
@@ -29,8 +28,9 @@ const char* Tracker::description() {
 }
 
 void Tracker::processData(char* data) {
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& root = jsonBuffer.parseObject(data);
+  StaticJsonBuffer<2000> buf;
+  JsonObject& root = buf.parseObject(data);
+  if (!root.success()) return;
 
   if (root.containsKey("decay")) {
     this->decayRate = root["decay"];
