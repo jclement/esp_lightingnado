@@ -16,6 +16,8 @@ I'm using an ESP12E DEVKIT V2 (ESP + USB programmer board) so my pins correspond
 
 * **RESET (D7)** - Momentarily grounding this pin within the first couple seconds of startup resets the configuration and enables the captive configuration portal
 * **LED DATA (RXA)** - This pin is used for the data signal for the WS2812 LED strip.
+* **POWER SUPPLY OUTPUT (D6)** - set to high when power supply should be on
+* **POWER SUPPLY STATUS (D5)** - should be high if power supply is on
 
 ## Controlling it
 
