@@ -77,6 +77,7 @@ S{"delay": 100, "length": 5, "right": false, "color":[200,100,0]}
 * **Length** is the number of lights to illuminate
 * **Right** are we moving right? or left?
 * **Color** color for the lit lights
+* **Step** is the number of pixels to jump each update
 
 ### Twinkle
 

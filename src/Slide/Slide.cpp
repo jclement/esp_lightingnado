@@ -15,9 +15,9 @@ void Slide::tick() {
   this->lastRun = millis();
 
   if (this->directionRight) {
-    this->strip->RotateRight(1);
+    this->strip->RotateRight(this->step);
   } else {
-    this->strip->RotateLeft(1);
+    this->strip->RotateLeft(this->step);
   }
 
   this->strip->Show();
@@ -39,6 +39,10 @@ void Slide::processData(char* data) {
     this->delayDuration = root["delay"];
   }
 
+  if (root.containsKey("step")) {
+    this->step = root["step"];
+  }
+
   if (root.containsKey("right")) {
     this->directionRight = root["right"];
   }
@@ -53,6 +57,10 @@ void Slide::processData(char* data) {
 
   if (this->delayDuration < 1) {
     this->delayDuration = 1;
+  }
+
+  if (this->step < 1) {
+    this->step = 1;
   }
 
   this->strip->ClearTo(RgbColor(0,0,0));

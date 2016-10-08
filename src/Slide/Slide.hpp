@@ -15,6 +15,7 @@ private:
   NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
   RgbColor color = RgbColor(255,255,255);
   int length = 2;
+  int step = 1;
   bool directionRight = true;
   int delayDuration = 10;
   void processData(char* data);
