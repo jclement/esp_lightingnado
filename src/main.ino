@@ -48,7 +48,10 @@ char* mqtt_pass;
 char* node_name;
 char* topic_status;
 char* topic_status_mode;
+char* topic_status_detail;
 char* topic_control;
+char client_id[50];
+unsigned long uptime;
 
 // temporary variables for incoming messages from MQTT
 #define MAX_MESSAGE_SIZE 1000
@@ -66,14 +69,14 @@ char pendingMessage[MAX_MESSAGE_SIZE] = "";
 
 void debugPrint(const char* msg) {
 #ifdef DEBUG_PRINT
- Serial.print("log: ");
+ Serial.print(F("log: "));
  Serial.println(msg);
 #endif
 }
 
 void debugPrint(const char* topic, const char* msg) {
 #ifdef DEBUG_PRINT
- Serial.print("log: [");
+ Serial.print(F("log: ["));
  Serial.print(topic);
  Serial.print("] ");
  Serial.println(msg);
@@ -122,7 +125,11 @@ uint readIntSetting(const char* key) {
 }
 
 void setup() {
+  uptime = 0;
   randomSeed(analogRead(0));
+  String tempId = "esp";
+  tempId += ESP.getChipId();
+  tempId.toCharArray(client_id, 50);
 
   Serial.begin(115200);
 
@@ -131,7 +138,7 @@ void setup() {
   WiFiManager wifiManager;
 
   // short pause on startup to look for settings RESET
-  Serial.println("Waiting for reset");
+  Serial.println(F("Waiting for reset"));
   pinMode(PIN_RESET, INPUT_PULLUP);
   pinMode(PIN_PS_CHECK, INPUT);
   pinMode(PIN_PS_OUTPUT, OUTPUT);
@@ -147,11 +154,11 @@ void setup() {
   }
   Serial.println("");
   if (reset) {
-    Serial.println("Resetting");
+    Serial.println(F("Resetting"));
     SPIFFS.format();
     wifiManager.resetSettings();
   }
-
+  
   // add bonus parameters to WifiManager
   wifiManager.setSaveConfigCallback(saveConfigCallback);
 
@@ -184,11 +191,11 @@ void setup() {
   wifiManager.autoConnect();
 
   //print out obtained IP address
-  Serial.print("Connected with IP: ");
+  Serial.print(F("Connected with IP: "));
   Serial.println(WiFi.localIP());
 
   if (shouldSaveConfig) {
-    Serial.println("Saving configuration...");
+    Serial.println(F("Saving configuration..."));
     saveSetting("mqtt_server", custom_mqtt_server);
     saveSetting("mqtt_port", custom_mqtt_port);
     saveSetting("mqtt_user", custom_mqtt_user);
@@ -213,10 +220,13 @@ void setup() {
     led_inset_length = led_count - led_inset_start;
   };
 
-  Serial.print("Node Name: ");
+  Serial.print(F("Node Name: "));
   Serial.println(node_name);
+  
+  Serial.print(F("Client ID: "));
+  Serial.println(client_id);
 
-  Serial.print("LED Count: ");
+  Serial.print(F("LED Count: "));
   Serial.println(led_count);
 
   topic_status = (char*) malloc(strlen(node_name) + 12);
@@ -233,7 +243,12 @@ void setup() {
   strcpy(topic_status_mode, "esp/");
   strcat(topic_status_mode, node_name);
   strcat(topic_status_mode, "/status/mode");
-
+  
+  topic_status_detail = (char*) malloc(strlen(node_name) + 19);
+  strcpy(topic_status_detail, "esp/");
+  strcat(topic_status_detail, node_name);
+  strcat(topic_status_detail, "/status/detail");
+  
   mqttClient.onConnect(onMqttConnect);
   mqttClient.onDisconnect(onMqttDisconnect);
   mqttClient.onSubscribe(onMqttSubscribe);
@@ -245,7 +260,7 @@ void setup() {
 
   mqttClient.setWill(topic_status, 2, true, "offline");
 
-  Serial.print("MQTT: ");
+  Serial.print(F("MQTT: "));
   Serial.print(mqtt_user);
   Serial.print("@");
   Serial.print(mqtt_server);
@@ -256,9 +271,9 @@ void setup() {
     mqttClient.setCredentials(mqtt_user, mqtt_pass);
   }
 
-  //mqttClient.setClientId(node_name);
+  //mqttClient.setClientId(client_id);
 
-  Serial.println("Connecting to MQTT...");
+  Serial.println(F("Connecting to MQTT..."));
   mqttClient.connect();
 
   strip = new NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod>(led_count, 4);
@@ -279,13 +294,13 @@ void setup() {
 uint16_t controlSubscribePacketId;
 
 void onMqttConnect() {
-  Serial.println("** Connected to the broker **");
+  Serial.println(F("** Connected to the broker **"));
   // subscribe to the control topic
   controlSubscribePacketId = mqttClient.subscribe(topic_control, 2);
 }
 
 void onMqttSubscribe(uint16_t packetId, uint8_t qos) {
-  Serial.println("** Subscribe acknowledged **");
+  Serial.println(F("** Subscribe acknowledged **"));
   // once successfully subscribed to control, public online status
   if (packetId == controlSubscribePacketId) {
     mqttClient.publish(topic_status, 2, true, "online");
@@ -293,7 +308,7 @@ void onMqttSubscribe(uint16_t packetId, uint8_t qos) {
 }
 
 void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
-  Serial.println("** Disconnected from the broker.  Reconnecting... **");
+  Serial.println(F("** Disconnected from the broker.  Reconnecting... **"));
   mqttClient.connect();
 }
 
@@ -411,12 +426,21 @@ void processPendingMessage() {
 unsigned long lastWifiCheck=0;
 void checkAndResetWifi()
 {
-  if (abs(millis() - lastWifiCheck) > 5000) {
+  unsigned long m = millis();
+  if (abs(m - lastWifiCheck) > 5000) {
+    uptime += (abs(m - lastWifiCheck) / 1000);
+    char statusArray[30];
+    if (digitalRead(PIN_PS_CHECK) == HIGH) {
+      sprintf(statusArray, "%s:%lu:%lu", "ON", uptime, ESP.getFreeHeap());
+    } else {
+      sprintf(statusArray, "%s:%lu:%lu", "OFF", uptime, ESP.getFreeHeap());
+    }
+    mqttClient.publish(topic_status_detail, 2, true, statusArray);
     // check for Wifi every 5 seconds and bounce if it's disconnected
-    lastWifiCheck = millis();
+    lastWifiCheck = m;    
     if (WiFi.status() == WL_DISCONNECTED)
     {
-      Serial.println("WiFi Disconnection... Resetting.");
+      Serial.println(F("WiFi Disconnection... Resetting."));
       ESP.reset();
     }
   }
@@ -425,10 +449,7 @@ void checkAndResetWifi()
 void loop() {
 
   if (currentMode != NULL) {
-    // don't try to send data unless the power supply confirms it's good
-    if (digitalRead(PIN_PS_CHECK) == HIGH) {
-      currentMode->tick();
-    }
+    currentMode->tick();
   }
 
   checkAndResetWifi();
