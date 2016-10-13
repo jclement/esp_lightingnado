@@ -272,7 +272,7 @@ void setup() {
     mqttClient.setCredentials(mqtt_user, mqtt_pass);
   }
 
-  //mqttClient.setClientId(client_id);
+  mqttClient.setClientId(client_id);
 
   Serial.println(F("Connecting to MQTT..."));
   mqttClient.connect();
