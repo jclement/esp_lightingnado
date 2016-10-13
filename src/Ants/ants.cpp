@@ -10,16 +10,26 @@ void Ants::update(char* data) {
   this->processData(data);
 }
 
-void Ants::tick() {
-  if (abs(millis() - this->lastRun) < this->delayDuration) return;
-  this->lastRun = millis();
-
-  this->strip->Show();
+void Ants::tick(unsigned long elapsed) {
+  timeSinceLastRun += elapsed;
+  if (timeSinceLastRun < this->delayDuration) return;
+  this->timeSinceLastRun = 0;
   if (this->directionRight) {
-    this->strip->RotateRight(1);
+    lastStart++;
   } else {
-    this->strip->RotateLeft(1);
+    lastStart--;
   }
+  if (lastStart >= numColours) {
+    lastStart = lastStart % numColours;
+  }
+  if (lastStart < 0) {
+    lastStart = numColours + lastStart;
+  }
+  
+  for(int i=0; i<this->strip->PixelCount(); i++) {
+    this->strip->SetPixelColor(i, colours[(i + lastStart) % numColours]);
+  }
+  this->strip->Show();
 }
 
 const char* Ants::description() {
@@ -42,16 +52,17 @@ void Ants::processData(char* data) {
     this->delayDuration = 1;
   }
 
-  int colorCount = root["colors"].size();
-  RgbColor colors[colorCount];
-  for(int i=0; i<colorCount; i++) {
-    colors[i] = RgbColor(root["colors"][i][0], root["colors"][i][1], root["colors"][i][2]);
+  numColours = root["colors"].size();
+  colours = new RgbColor[numColours];
+  for(int i=0; i<numColours; i++) {
+    colours[i] = RgbColor(root["colors"][i][0], root["colors"][i][1], root["colors"][i][2]);
   }
 
   for(int i=0; i<this->strip->PixelCount(); i++) {
-    this->strip->SetPixelColor(i, colors[i % colorCount]);
+    this->strip->SetPixelColor(i, colours[i % numColours]);
   }
 }
 
 Ants::~Ants() {
+  delete [] colours;
 }

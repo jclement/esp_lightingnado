@@ -24,9 +24,10 @@ void Rainbow::update(char* data) {
   this->processData(data);
 }
 
-void Rainbow::tick() {
-  if (abs(millis() - this->lastRun) < this->delayDuration) return;
-  this->lastRun = millis();
+void Rainbow::tick(unsigned long elapsed) {
+  timeSinceLastRun += elapsed;
+  if (timeSinceLastRun < this->delayDuration) return;
+  this->timeSinceLastRun = 0;
 
   if (this->directionRight) {
     this->strip->RotateRight(this->step);

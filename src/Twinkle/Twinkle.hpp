@@ -9,7 +9,7 @@ public:
   Twinkle(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data);
   ~Twinkle();
   void update(char* data);
-  void tick();
+  void tick(unsigned long elapsed);
   const char* description();
 private:
   NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
@@ -18,7 +18,7 @@ private:
   int decayRate = 5;
   void processData(char* data);
   const char* name = "Twinkle";
-  unsigned long lastRun = 0;
+  unsigned long timeSinceLastRun = 0;
 };
 
 #endif
