@@ -16,7 +16,7 @@ private:
   bool directionRight = true;
   int delayDuration = 10;
   void processData(char* data);
-  unsigned long timeSinceLastRun = 0;
+  unsigned long accumulatedTime = 0;
   unsigned int numColours = 0;
   unsigned int lastStart = 0;
   RgbColor *colours;

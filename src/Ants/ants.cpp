@@ -11,21 +11,22 @@ void Ants::update(char* data) {
 }
 
 void Ants::tick(unsigned long elapsed) {
-  timeSinceLastRun += elapsed;
-  if (timeSinceLastRun < this->delayDuration) return;
-  this->timeSinceLastRun = 0;
-  if (this->directionRight) {
-    lastStart++;
-  } else {
-    lastStart--;
+  accumulatedTime += elapsed;
+  if (accumulatedTime < this->delayDuration) return;
+  while (accumulatedTime >= this->delayDuration) {
+    if (this->directionRight) {
+      lastStart++;
+    } else {
+      lastStart--;
+    }
+    if (lastStart >= numColours) {
+      lastStart = lastStart - numColours;
+    }
+    if (lastStart < 0) {
+      lastStart = numColours + lastStart;
+    }
+    accumulatedTime -= this->delayDuration;
   }
-  if (lastStart >= numColours) {
-    lastStart = lastStart % numColours;
-  }
-  if (lastStart < 0) {
-    lastStart = numColours + lastStart;
-  }
-  
   for(int i=0; i<this->strip->PixelCount(); i++) {
     this->strip->SetPixelColor(i, colours[(i + lastStart) % numColours]);
   }
