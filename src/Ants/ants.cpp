@@ -7,6 +7,7 @@ Ants::Ants(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data) {
 }
 
 void Ants::update(char* data) {
+  delete [] colours;
   this->processData(data);
 }
 
@@ -54,7 +55,6 @@ void Ants::processData(char* data) {
   }
 
   numColours = root["colors"].size();
-  delete [] colours;
   colours = new RgbColor[numColours];
   for(int i=0; i<numColours; i++) {
     colours[i] = RgbColor(root["colors"][i][0], root["colors"][i][1], root["colors"][i][2]);
