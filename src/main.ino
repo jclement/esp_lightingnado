@@ -294,7 +294,7 @@ void setup() {
 
 uint16_t controlSubscribePacketId;
 
-void onMqttConnect() {
+void onMqttConnect(bool sessionPresent) {
   Serial.println(F("** Connected to the broker **"));
   // subscribe to the control topic
   controlSubscribePacketId = mqttClient.subscribe(topic_control, 2);
