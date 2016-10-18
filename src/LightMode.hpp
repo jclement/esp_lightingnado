@@ -11,7 +11,7 @@ public:
   virtual void update(char* data) {};
 
   // called per loop.  This is responsible for updating LED strip + any required delays
-  virtual void tick() {};
+  virtual void tick(unsigned long elapsed) {};
 
   // name for status messages
   virtual const char* description() {return NULL;}

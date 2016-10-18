@@ -9,7 +9,7 @@ public:
   Percent(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data, int start, int length);
   ~Percent();
   void update(char* data);
-  void tick();
+  void tick(unsigned long elapsed);
   const char* description();
 private:
   NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
@@ -31,7 +31,7 @@ private:
   void processData(bool init, char* data);
 
   char name[20];
-  unsigned long lastRun = 0;
+  unsigned long timeSinceLastRun = 0;
 };
 
 #endif

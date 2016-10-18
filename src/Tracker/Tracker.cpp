@@ -10,9 +10,10 @@ void Tracker::update(char* data) {
   this->processData(data);
 }
 
-void Tracker::tick() {
-  if (abs(millis() - this->lastRun) < 50) return;
-  this->lastRun = millis();
+void Tracker::tick(unsigned long elapsed) {
+  timeSinceLastRun += elapsed;
+  if (timeSinceLastRun < 50) return;
+  this->timeSinceLastRun = 0;
 
   for(int i=0; i<strip->PixelCount(); i++) {
     RgbColor c = strip->GetPixelColor(i);

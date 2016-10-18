@@ -10,9 +10,10 @@ void Twinkle::update(char* data) {
   this->processData(data);
 }
 
-void Twinkle::tick() {
-  if (abs(millis() - this->lastRun) < this->delayDuration) return;
-  this->lastRun = millis();
+void Twinkle::tick(unsigned long elapsed) {
+  timeSinceLastRun += elapsed;
+  if (timeSinceLastRun < this->delayDuration) return;
+  this->timeSinceLastRun = 0;
 
   if (random(this->spawnRate) == 0) {
     this->strip->SetPixelColor(random(this->strip->PixelCount()-1), RgbColor(255,255,random(255)));

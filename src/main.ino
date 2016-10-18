@@ -9,6 +9,7 @@
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h>         //https://github.com/tzapu/WiFiManager
 #include <ESP8266WiFi.h>
+#include <limits.h>
 
 #define DEBUG_PRINT
 
@@ -271,7 +272,7 @@ void setup() {
     mqttClient.setCredentials(mqtt_user, mqtt_pass);
   }
 
-  //mqttClient.setClientId(client_id);
+  mqttClient.setClientId(client_id);
 
   Serial.println(F("Connecting to MQTT..."));
   mqttClient.connect();
@@ -293,7 +294,7 @@ void setup() {
 
 uint16_t controlSubscribePacketId;
 
-void onMqttConnect() {
+void onMqttConnect(bool sessionPresent) {
   Serial.println(F("** Connected to the broker **"));
   // subscribe to the control topic
   controlSubscribePacketId = mqttClient.subscribe(topic_control, 2);
@@ -423,12 +424,14 @@ void processPendingMessage() {
                               \/     \/        \/          \/            |__|
    ======================================================================================================== */
 
-unsigned long lastWifiCheck=0;
-void checkAndResetWifi()
+unsigned long timeSinceWifiCheck=0;
+unsigned long lastLoopTime=0;
+void checkAndResetWifi(unsigned long elapsed)
 {
-  unsigned long m = millis();
-  if (abs(m - lastWifiCheck) > 5000) {
-    uptime += (abs(m - lastWifiCheck) / 1000);
+  timeSinceWifiCheck += elapsed;
+  if (timeSinceWifiCheck > 5000) {
+    // yeah it's a little crude to just truncate to the nearest second but I just don't think the accuracy really matters here
+    uptime += (timeSinceWifiCheck / 1000);
     char statusArray[30];
     if (digitalRead(PIN_PS_CHECK) == HIGH) {
       sprintf(statusArray, "%s:%lu:%lu", "ON", uptime, ESP.getFreeHeap());
@@ -437,25 +440,35 @@ void checkAndResetWifi()
     }
     mqttClient.publish(topic_status_detail, 2, true, statusArray);
     // check for Wifi every 5 seconds and bounce if it's disconnected
-    lastWifiCheck = m;    
     if (WiFi.status() == WL_DISCONNECTED)
     {
       Serial.println(F("WiFi Disconnection... Resetting."));
       ESP.reset();
     }
+    timeSinceWifiCheck = 0;
   }
 }
 
 void loop() {
-
+  unsigned long currentMillis = millis();
+  unsigned long elapsed;
+  // did we last loop within 30 seconds of ULONG_MAX and is the current time within 30 seconds of zero?  Timer must have wrapped while we weren't looking
+  // Arduino says this will happen every 49 days so I'm hoping uptime will be long enough we need to think about this!
+  if (lastLoopTime > (ULONG_MAX - 30000) && currentMillis < 30000) {
+    elapsed = (ULONG_MAX-lastLoopTime) + currentMillis;
+  } else {
+    elapsed = currentMillis - lastLoopTime;
+  }
+  lastLoopTime = currentMillis;
   if (currentMode != NULL) {
-    currentMode->tick();
+    currentMode->tick(elapsed);
   }
 
-  checkAndResetWifi();
+  checkAndResetWifi(elapsed);
 
   if (hasUnprocessedMessage) {
     processPendingMessage();
     hasUnprocessedMessage = false;
   }
+  delay(1);
 }

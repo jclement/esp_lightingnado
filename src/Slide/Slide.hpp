@@ -9,7 +9,7 @@ public:
   Slide(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data);
   ~Slide();
   void update(char* data);
-  void tick();
+  void tick(unsigned long elapsed);
   const char* description();
 private:
   NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
@@ -19,7 +19,7 @@ private:
   bool directionRight = true;
   int delayDuration = 10;
   void processData(char* data);
-  unsigned long lastRun = 0;
+  unsigned long timeSinceLastRun = 0;
 };
 
 #endif
