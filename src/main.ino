@@ -33,6 +33,8 @@ uint led_inset_length = 999;
 #include "Tracker/Tracker.hpp"
 #include "Percent/Percent.hpp"
 #include "Rainbow/Rainbow.hpp"
+#include "Halloween/Halloween.hpp"
+#include "KnightRider/KnightRider.hpp"
 
 LightMode *currentMode = NULL;
 char currentModeChar=' ';
@@ -369,6 +371,12 @@ void switchMode(char mode, char* payload)
       break;
     case 'K':
       newMode = new Tracker(strip, payload);
+      break;
+    case 'N':
+      newMode = new KnightRider(strip, payload);
+      break;
+    case 'H':
+      newMode = new Halloween(strip, payload);
       break;
     case '0': // OFF
       digitalWrite(PIN_PS_OUTPUT, LOW);
