@@ -54,10 +54,13 @@ void KnightRider::updateFrame() {
         if (i < (sliderPos - sliderWidth/2) || i > (sliderPos + sliderWidth/2)) {
           this->strip->SetPixelColor(i, RgbColor(0,0,0));
         } else if (i >= (sliderPos - sliderWidth/2) && i < sliderPos) {
-          this->strip->SetPixelColor(i, RgbColor::LinearBlend(RgbColor(0,0,0),this->color,(float) (sliderPos - i) / (float) (sliderWidth / 2)));            
+          this->strip->SetPixelColor(i, RgbColor::LinearBlend(this->color,RgbColor(0,0,0),(float) (sliderPos - i) / (float) (sliderWidth / 2)));            
         } else {
           this->strip->SetPixelColor(i, this->color);
         }
+      }
+      if ((sliderPos + sliderWidth/2) >= stripLength) {
+        this->strip->SetPixelColor(stripLength - 1, this->color);
       }
       break;
     case 2:      
@@ -68,11 +71,14 @@ void KnightRider::updateFrame() {
       for (i = 0;i < stripLength;i++) {
         if (i < (sliderPos - sliderWidth/2) || i > (sliderPos + sliderWidth/2)) {
           this->strip->SetPixelColor(i, RgbColor(0,0,0));
-        } else if (i < (sliderPos + sliderWidth/2) && i >= sliderPos) {
-          this->strip->SetPixelColor(i, RgbColor::LinearBlend(RgbColor(0,0,0),this->color,(float) (i - sliderPos) / (float) (sliderWidth / 2)));            
+        } else if (i <= (sliderPos + sliderWidth/2) && i > sliderPos) {
+          this->strip->SetPixelColor(i, RgbColor::LinearBlend(this->color,RgbColor(0,0,0),(float) (i - sliderPos) / (float) (sliderWidth / 2)));            
         } else {
           this->strip->SetPixelColor(i, this->color);
         }
+      }
+      if ((sliderPos - sliderWidth/2) <= 0) {
+        this->strip->SetPixelColor(0, this->color);
       }
       break;      
   }
