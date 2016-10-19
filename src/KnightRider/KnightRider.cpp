@@ -50,7 +50,6 @@ void KnightRider::updateFrame() {
       this->strip->SetPixelColor(0, this->color);
       break;
     case 1:      
-      sliderPos = offset - (width / 2);
       for (i = 0;i < stripLength;i++) {
         if (i < (sliderPos - sliderWidth/2) || i > (sliderPos + sliderWidth/2)) {
           this->strip->SetPixelColor(i, RgbColor(0,0,0));
@@ -65,7 +64,7 @@ void KnightRider::updateFrame() {
       this->strip->SetPixelColor(stripLength - 1, this->color);
       break;
     case 3:
-      sliderPos = stripLength - (offset + (width / 2));
+      sliderPos = stripLength - sliderPos;
       for (i = 0;i < stripLength;i++) {
         if (i < (sliderPos - sliderWidth/2) || i > (sliderPos + sliderWidth/2)) {
           this->strip->SetPixelColor(i, RgbColor(0,0,0));
