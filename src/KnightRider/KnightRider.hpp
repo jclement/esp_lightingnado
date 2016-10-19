@@ -15,7 +15,7 @@ private:
   NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
   RgbColor color = RgbColor(255,0,0);
   int state = 0; // 0 is left on solid, 1 is moving right, 2 is right on solid, 3 is moving left
-  int stateTime[4] = {250,1000,250,1000};
+  int stateTime[4] = {0,1000,0,1000};
   int width = 20; // percent
   int length = 0;
   void processData(char* data, bool reset);

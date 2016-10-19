@@ -13,8 +13,8 @@ public:
   const char* description();
 private:
   NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
-  RgbColor color = RgbColor(255,255,255);
-  int state = 0;
+  int state = 0; // 0 is off, 1 is dim orange, 2 is orange sliders, 3 is orange twinkle, 4 is flashing white
+  int stateTime[5] = {5000,30000,10000,10000,500};
   int length = 0;
   unsigned int currentDelay = 0;
   bool directionRight = true;

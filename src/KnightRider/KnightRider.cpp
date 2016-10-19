@@ -15,7 +15,10 @@ void KnightRider::tick(unsigned long elapsed) {
   // advance state machine until we've caught up
   while (timeSinceLastRun >= this->stateTime[this->state]) {
     timeSinceLastRun -= this->stateTime[this->state++];
-    if (this->state > 3) { this->state = 0; }
+    color = RgbColor(HsbColor(((float) random(1000) / 1000.0f), 1.0f, 1.0f));
+    if (this->state > 3) { 
+      this->state = 0; 
+    }
   }
   updateFrame();
 }
@@ -53,10 +56,10 @@ void KnightRider::updateFrame() {
       for (i = 0;i < stripLength;i++) {
         if (i < (sliderPos - sliderWidth/2) || i > (sliderPos + sliderWidth/2)) {
           this->strip->SetPixelColor(i, RgbColor(0,0,0));
-        } else if (i >= (sliderPos - sliderWidth/2) && i < sliderPos) {
-          this->strip->SetPixelColor(i, RgbColor::LinearBlend(this->color,RgbColor(0,0,0),(float) (sliderPos - i) / (float) (sliderWidth / 2)));            
+        } else if (i >= (sliderPos - sliderWidth/2) && i < (sliderPos + sliderWidth/2)) {
+          this->strip->SetPixelColor(i, RgbColor::LinearBlend(this->color,RgbColor(0,0,0),(float) ((sliderPos + sliderWidth/2) - i) / (float) (sliderWidth)));
         } else {
-          this->strip->SetPixelColor(i, this->color);
+          this->strip->SetPixelColor(i, this->color); // unused
         }
       }
       if ((sliderPos + sliderWidth/2) >= stripLength) {
@@ -71,8 +74,8 @@ void KnightRider::updateFrame() {
       for (i = 0;i < stripLength;i++) {
         if (i < (sliderPos - sliderWidth/2) || i > (sliderPos + sliderWidth/2)) {
           this->strip->SetPixelColor(i, RgbColor(0,0,0));
-        } else if (i <= (sliderPos + sliderWidth/2) && i > sliderPos) {
-          this->strip->SetPixelColor(i, RgbColor::LinearBlend(this->color,RgbColor(0,0,0),(float) (i - sliderPos) / (float) (sliderWidth / 2)));            
+        } else if (i <= (sliderPos + sliderWidth/2) && i > (sliderPos - sliderWidth/2)) {
+          this->strip->SetPixelColor(i, RgbColor::LinearBlend(this->color,RgbColor(0,0,0),(float) (i - (sliderPos - sliderWidth/2)) / (float) (sliderWidth)));
         } else {
           this->strip->SetPixelColor(i, this->color);
         }
