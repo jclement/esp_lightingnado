@@ -3,7 +3,7 @@
 
 KnightRider::KnightRider(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data) {
   this->strip = strip;
-  this->processData(data, true);
+  processData(data, true);
 }
 
 void KnightRider::update(char* data) {
@@ -13,11 +13,13 @@ void KnightRider::update(char* data) {
 void KnightRider::tick(unsigned long elapsed) {  
   timeSinceLastRun += elapsed;
   // advance state machine until we've caught up
-  while (timeSinceLastRun >= this->stateTime[this->state]) {
-    timeSinceLastRun -= this->stateTime[this->state++];
-    color = RgbColor(HsbColor(((float) random(1000) / 1000.0f), 1.0f, 1.0f));
-    if (this->state > 3) { 
-      this->state = 0; 
+  while (timeSinceLastRun >= stateTime[state]) {
+    timeSinceLastRun -= stateTime[state++];
+    if (!fixedColour) {
+      colour = RgbColor(HsbColor(((float) random(1000) / 1000.0f), 1.0f, 1.0f));
+    }
+    if (state > 3) { 
+      state = 0; 
     }
   }
   updateFrame();
@@ -29,63 +31,90 @@ const char* KnightRider::description() {
 
 void KnightRider::processData(char* data, bool reset) {
   StaticJsonBuffer<500> buf;
+  JsonObject& root = buf.parseObject(data);
   if (reset) { 
-    this->state = 0; 
+    state = 0; 
   }
-  // one day we'll process some JSON here... one day
+  if (root.success()) {
+    if (root.containsKey("endDelay")) {
+      stateTime[1] = root["endDelay"];
+
+      if (stateTime[1] < 0) {
+        stateTime[1] = 0;
+      } else if (stateTime[1] > 10000) {
+        stateTime[1] = 10000;
+      }
+      stateTime[3] = stateTime[1];
+    }
+    if (root.containsKey("sweepTime")) {
+      stateTime[0] = root["sweepTime"];
+      if (stateTime[0] < 0) {
+        stateTime[0] = 0;
+      } else if (stateTime[0] > 10000) {
+        stateTime[0] = 10000;
+      }
+      stateTime[2] = stateTime[0];
+    }
+    if (root.containsKey("colour")) {
+      fixedColour = true;
+      colour = RgbColor(root["color"][0], root["color"][1], root["color"][2]);
+    } else {
+      fixedColour = false;
+    }
+  }
   updateFrame();
 }
 
 void KnightRider::updateFrame() {
-  int stripLength = this->strip->PixelCount();
+  int stripLength = strip->PixelCount();
   int offset;
-  int sliderWidth = (this->width * stripLength) / 100;
+  int sliderWidth = (width * stripLength) / 100;
   int sliderPos;
   int currentPos;
   int i;
-  if (this->state == 1 || this->state == 3) {
+  if (state == 1 || state == 3) {
     // sliderPos starts at negative half a width and ends at positive half a width
-    sliderPos = (sliderWidth / (-2)) + ((timeSinceLastRun * (100 + this->width) * stripLength) / (this->stateTime[this->state] * 100));
+    sliderPos = (sliderWidth / (-2)) + ((timeSinceLastRun * (100 + width) * stripLength) / (stateTime[state] * 100));
   }
-  this->strip->ClearTo(RgbColor(0,0,0));
-  switch (this->state) {
+  strip->ClearTo(RgbColor(0,0,0));
+  switch (state) {
     case 0:
-      this->strip->SetPixelColor(0, this->color);
+      strip->SetPixelColor(0, colour);
       break;
     case 1:      
       for (i = 0;i < stripLength;i++) {
         if (i < (sliderPos - sliderWidth/2) || i > (sliderPos + sliderWidth/2)) {
-          this->strip->SetPixelColor(i, RgbColor(0,0,0));
+          strip->SetPixelColor(i, RgbColor(0,0,0));
         } else if (i >= (sliderPos - sliderWidth/2) && i < (sliderPos + sliderWidth/2)) {
-          this->strip->SetPixelColor(i, RgbColor::LinearBlend(this->color,RgbColor(0,0,0),(float) ((sliderPos + sliderWidth/2) - i) / (float) (sliderWidth)));
+          strip->SetPixelColor(i, RgbColor::LinearBlend(colour,RgbColor(0,0,0),(float) ((sliderPos + sliderWidth/2) - i) / (float) (sliderWidth)));
         } else {
-          this->strip->SetPixelColor(i, this->color); // unused
+          strip->SetPixelColor(i, colour); // unused
         }
       }
       if ((sliderPos + sliderWidth/2) >= stripLength) {
-        this->strip->SetPixelColor(stripLength - 1, this->color);
+        strip->SetPixelColor(stripLength - 1, colour);
       }
       break;
     case 2:      
-      this->strip->SetPixelColor(stripLength - 1, this->color);
+      strip->SetPixelColor(stripLength - 1, colour);
       break;
     case 3:
       sliderPos = stripLength - sliderPos;
       for (i = 0;i < stripLength;i++) {
         if (i < (sliderPos - sliderWidth/2) || i > (sliderPos + sliderWidth/2)) {
-          this->strip->SetPixelColor(i, RgbColor(0,0,0));
+          strip->SetPixelColor(i, RgbColor(0,0,0));
         } else if (i <= (sliderPos + sliderWidth/2) && i > (sliderPos - sliderWidth/2)) {
-          this->strip->SetPixelColor(i, RgbColor::LinearBlend(this->color,RgbColor(0,0,0),(float) (i - (sliderPos - sliderWidth/2)) / (float) (sliderWidth)));
+          strip->SetPixelColor(i, RgbColor::LinearBlend(colour,RgbColor(0,0,0),(float) (i - (sliderPos - sliderWidth/2)) / (float) (sliderWidth)));
         } else {
-          this->strip->SetPixelColor(i, this->color);
+          strip->SetPixelColor(i, colour);
         }
       }
       if ((sliderPos - sliderWidth/2) <= 0) {
-        this->strip->SetPixelColor(0, this->color);
+        strip->SetPixelColor(0, colour);
       }
       break;      
   }
-  this->strip->Show();
+  strip->Show();
 }
 
 KnightRider::~KnightRider() {

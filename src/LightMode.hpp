@@ -3,6 +3,8 @@
 
 #include <NeoPixelBus.h>
 
+class LightMode;
+
 class LightMode {
 public:
   virtual ~LightMode() {};
@@ -15,7 +17,9 @@ public:
 
   // name for status messages
   virtual const char* description() {return NULL;}
-
+  
+  virtual const char* detailsTopic() {return NULL;}
+  virtual void process(char* data) {};
 };
 
 #endif

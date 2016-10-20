@@ -24,8 +24,8 @@ void Tracker::tick(unsigned long elapsed) {
   this->strip->Show();
 }
 
-const char* Tracker::description() {
-  return "Tracker";
+void Tracker::process(char* data) {
+  
 }
 
 void Tracker::processData(char* data) {

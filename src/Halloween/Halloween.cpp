@@ -3,11 +3,11 @@
 
 Halloween::Halloween(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data) {
   this->strip = strip;
-  this->processData(data, true);
+  processData(data, true);
 }
 
 void Halloween::update(char* data) {
-  this->processData(data, false);
+  processData(data, false);
 }
 
 void Halloween::tick(unsigned long elapsed) {
@@ -38,7 +38,7 @@ void Halloween::updateFrame() {
   int fadePosition;
   RgbColor currentColour;
   strip->ClearTo(RgbColor(0,0,0));
-  switch (this->state) {
+  switch (state) {
     case 0: // easy case!  We want it black!
       break;
     case 1: // slow orange fade
