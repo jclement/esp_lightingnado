@@ -25,7 +25,13 @@ void Tracker::tick(unsigned long elapsed) {
 }
 
 void Tracker::process(char* data) {
-  
+  StaticJsonBuffer<2000> buf;
+  JsonObject& root = buf.parseObject(data);
+  if (!root.success()) return;
+  for(int i=0; i<root["data"].size(); i++) {
+    int pixel = (this->strip->PixelCount()-1) * root["data"][i].as<float>()/100.0;
+    this->strip->SetPixelColor(pixel, this->color);
+  }  
 }
 
 void Tracker::processData(char* data) {

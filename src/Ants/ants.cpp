@@ -16,9 +16,9 @@ void Ants::tick(unsigned long elapsed) {
   if (accumulatedTime < this->delayDuration) return;
   while (accumulatedTime >= this->delayDuration) {
     if (this->directionRight) {
-      lastStart++;
-    } else {
       lastStart--;
+    } else {
+      lastStart++;
     }
     if (lastStart >= numColours) {
       lastStart = lastStart - numColours;

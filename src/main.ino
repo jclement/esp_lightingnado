@@ -58,8 +58,10 @@ unsigned long uptime;
 
 // temporary variables for incoming messages from MQTT
 #define MAX_MESSAGE_SIZE 1000
-bool hasUnprocessedMessage = false;
-char pendingMessage[MAX_MESSAGE_SIZE] = "";
+bool hasUnprocessedControlMessage = false;
+bool hasUnprocessedDetailMessage = false;
+char pendingControlMessage[MAX_MESSAGE_SIZE] = "";
+char pendingDetailMessage[MAX_MESSAGE_SIZE] = "";
 
 /* ========================================================================================================
                                            __
@@ -232,23 +234,23 @@ void setup() {
   Serial.print(F("LED Count: "));
   Serial.println(led_count);
 
-  topic_status = (char*) malloc(strlen(node_name) + 12);
-  strcpy(topic_status, "esp/");
+  topic_status = (char*) malloc(strlen(node_name) + 13);
+  strcpy(topic_status, "/esp/");
   strcat(topic_status, node_name);
   strcat(topic_status, "/status");
 
-  topic_control = (char*) malloc(strlen(node_name) + 13);
-  strcpy(topic_control, "esp/");
+  topic_control = (char*) malloc(strlen(node_name) + 14);
+  strcpy(topic_control, "/esp/");
   strcat(topic_control, node_name);
   strcat(topic_control, "/control");
 
-  topic_status_mode = (char*) malloc(strlen(node_name) + 17);
-  strcpy(topic_status_mode, "esp/");
+  topic_status_mode = (char*) malloc(strlen(node_name) + 18);
+  strcpy(topic_status_mode, "/esp/");
   strcat(topic_status_mode, node_name);
   strcat(topic_status_mode, "/status/mode");
   
-  topic_status_detail = (char*) malloc(strlen(node_name) + 19);
-  strcpy(topic_status_detail, "esp/");
+  topic_status_detail = (char*) malloc(strlen(node_name) + 20);
+  strcpy(topic_status_detail, "/esp/");
   strcat(topic_status_detail, node_name);
   strcat(topic_status_detail, "/status/detail");
   
@@ -256,6 +258,7 @@ void setup() {
   mqttClient.onDisconnect(onMqttDisconnect);
   mqttClient.onSubscribe(onMqttSubscribe);
   mqttClient.onMessage(onMqttMessage);
+  mqttClient.onUnsubscribe(onMqttUnsubscribe);
 
   mqttClient.setServer(mqtt_server, mqtt_port);
 
@@ -295,6 +298,8 @@ void setup() {
    ======================================================================================================== */
 
 uint16_t controlSubscribePacketId;
+uint16_t detailSubscribePacketId;
+uint16_t detailUnsubscribePacketId;
 
 void onMqttConnect(bool sessionPresent) {
   Serial.println(F("** Connected to the broker **"));
@@ -308,6 +313,16 @@ void onMqttSubscribe(uint16_t packetId, uint8_t qos) {
   if (packetId == controlSubscribePacketId) {
     mqttClient.publish(topic_status, 2, true, "online");
   }
+  if (packetId == detailSubscribePacketId) {
+    Serial.println(F("Subscribed to detail topic"));
+  }
+}
+
+void onMqttUnsubscribe(uint16_t packetId) {
+  Serial.println(F("** Unsubscribe acknowledged **"));
+  if (packetId == detailUnsubscribePacketId) {
+    Serial.println(F("Unsubscribed from detail topic"));
+  }
 }
 
 void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
@@ -315,14 +330,25 @@ void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
   mqttClient.connect();
 }
 
-void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
-  // if we haven't finished processing the current payload, skip this one
-  if (hasUnprocessedMessage) return;
-  // if the message is too large, skip it
-  if (len >= MAX_MESSAGE_SIZE) return;
-  // copy payload and flag that we have one!
-  strcpy(pendingMessage, payload);
-  hasUnprocessedMessage = true;
+void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {  
+  if (strcmp(topic, topic_control) == 0) {
+    // if we haven't finished processing the current payload, skip this one
+    if (hasUnprocessedControlMessage) return;
+    // if the message is too large, skip it
+    if (len >= MAX_MESSAGE_SIZE) return;
+    // copy payload and flag that we have one!
+    strcpy(pendingControlMessage, payload);
+    hasUnprocessedControlMessage = true;
+  } else { // must be a detail message!
+    Serial.print("Received message for topic: ");
+    Serial.println(topic);
+    Serial.print("Content: ");
+    Serial.println(payload);
+    if (hasUnprocessedDetailMessage) return;
+    if (len >= MAX_MESSAGE_SIZE) return;
+    strcpy(pendingDetailMessage, payload);
+    hasUnprocessedDetailMessage = true;
+  }
 }
 
 /* ========================================================================================================
@@ -336,7 +362,7 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
 
 void updateMode(char* payload)
 {
-  debugPrint("updateMode Payload", payload);
+  //debugPrint("updateMode Payload", payload);
 
   currentMode->update(payload);
 
@@ -344,12 +370,12 @@ void updateMode(char* payload)
   char msg[100] = "Update:";
   strcat(msg, currentMode->description());
   mqttClient.publish(topic_status_mode, 2, true, msg);
-  debugPrint("updateMode Message", msg);
+  //debugPrint("updateMode Message", msg);
 }
 
 void switchMode(char mode, char* payload)
 {
-  debugPrint("switchMode Payload", payload);
+  //debugPrint("switchMode Payload", payload);
   LightMode* newMode;
 
   // create mode, if we can find it
@@ -393,26 +419,52 @@ void switchMode(char mode, char* payload)
 
   // if we had a previous mode,
   if (currentMode != NULL) {
+    if (currentMode->detailsTopic() != NULL) {
+      //subscribe to the new details topic
+      char topic[100];
+      strcpy(topic, "/esp/");
+      strcat(topic, node_name);
+      strcat(topic, "/detail/");
+      strncat(topic, currentMode->detailsTopic(), (87 - strlen(node_name)));
+      topic[100] = '\0';
+      detailUnsubscribePacketId = mqttClient.unsubscribe(topic);
+      Serial.print(F("Unsubscribing from: "));
+      Serial.println(topic);
+     }
     delete(currentMode);
   }
 
   // switch active mode
   currentModeChar = mode;
   currentMode = newMode;
-
+  
   // tell the world
   char msg[100] = "Switch:";
   strcat(msg, currentMode->description());
   mqttClient.publish(topic_status_mode, 2, true, msg);
 
+  
+  if (currentMode->detailsTopic() != NULL) {
+    //subscribe to the new details topic
+    char topic[100];
+    strcpy(topic, "/esp/");
+    strcat(topic, node_name);
+    strcat(topic, "/detail/");
+    strncat(topic, currentMode->detailsTopic(), (87 - strlen(node_name)));
+    Serial.print(F("Subscribing to: "));
+    Serial.println(topic);
+    topic[100] = '\0';
+    detailSubscribePacketId = mqttClient.subscribe(topic, 2);
+   }
+  
   // turn on the power supply
   digitalWrite(PIN_PS_OUTPUT, HIGH);
 }
 
-void processPendingMessage() {
+void processPendingControlMessage() {
 
-  char targetModeChar = pendingMessage[0];
-  char* modePayload = pendingMessage + 1;
+  char targetModeChar = pendingControlMessage[0];
+  char* modePayload = pendingControlMessage + 1;
 
   if (targetModeChar != currentModeChar) {
     switchMode(targetModeChar, modePayload);
@@ -420,6 +472,12 @@ void processPendingMessage() {
     if (currentMode != NULL) {
       updateMode(modePayload);
     }
+  }
+}
+
+void processPendingDetailMessage() {
+  if (currentMode != NULL) {
+    currentMode->process(pendingDetailMessage);
   }
 }
 
@@ -474,9 +532,13 @@ void loop() {
 
   checkAndResetWifi(elapsed);
 
-  if (hasUnprocessedMessage) {
-    processPendingMessage();
-    hasUnprocessedMessage = false;
+  if (hasUnprocessedControlMessage) {
+    processPendingControlMessage();
+    hasUnprocessedControlMessage = false;
+  }
+  if (hasUnprocessedDetailMessage) {
+    processPendingDetailMessage();
+    hasUnprocessedDetailMessage = false;
   }
   delay(1);
 }
