@@ -73,7 +73,6 @@ void KnightRider::updateFrame() {
   int currentPos;
   int i;
   if (state == 1 || state == 3) {
-    // sliderPos starts at negative half a width and ends at positive half a width
     sliderPos = (sliderWidth / (-2)) + ((timeSinceLastRun * (100 + width) * stripLength) / (stateTime[state] * 100));
   }
   strip->ClearTo(RgbColor(0,0,0));

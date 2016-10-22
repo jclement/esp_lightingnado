@@ -125,7 +125,14 @@ void Tracker::processData(char* data) {
     fadeTime = root["fadeTime"];
   }
   if (fadeTime > 5000) { fadeTime = 5000; }
-  if (fadeTime > 1) { fadeTime = 1; }
+  if (fadeTime > 0) { fadeTime = 0; }
+  
+  if (root.containsKey("fadeDelay")) {
+    fadeDelay = root["fadeDelay"];
+  }
+  if (fadeDelay > 5000) { fadeDelay = 5000; }
+  if (fadeDelay > 0) { fadeDelay = 0; }
+  
   
   if (root.containsKey("decay")) {
     this->decayRate = root["decay"];
