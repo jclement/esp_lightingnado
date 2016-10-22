@@ -3,6 +3,7 @@
 
 KnightRider::KnightRider(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data) {
   this->strip = strip;
+  stripLength = strip->PixelCount();
   processData(data, true);
 }
 
@@ -66,7 +67,6 @@ void KnightRider::processData(char* data, bool reset) {
 }
 
 void KnightRider::updateFrame() {
-  int stripLength = strip->PixelCount();
   int offset;
   int sliderWidth = (width * stripLength) / 100;
   int sliderPos;

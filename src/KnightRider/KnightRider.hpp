@@ -23,6 +23,7 @@ private:
   void updateFrame();
   unsigned int delayDuration = 0;
   unsigned long timeSinceLastRun = 0;
+  int stripLength = 0;
 };
 
 #endif
