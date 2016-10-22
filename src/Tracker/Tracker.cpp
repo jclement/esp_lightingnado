@@ -18,15 +18,15 @@ void Tracker::update(char* data) {
 void Tracker::tick(unsigned long elapsed) {
   for (int i = 0;i < DATA_ARR_LENGTH;i++) {
     if (dataArray[i] > 0) { dataArray[i] += elapsed; }
-    if (dataArray[i] > (fadeTime + fadeHold)) { dataArray[i] = -1; }
+    if (dataArray[i] > (fadeTime + fadeDelay)) { dataArray[i] = -1; }
   }
   updateFrame();
 }
 
 RgbColor Tracker::calculateColour(int millis) {
-  if (millis < fadeHold) { return color; }
-  if (millis > (fadeHold > fadeTime)) { return black; }
-  return RgbColor::LinearBlend(color, black, ((float) (millis - fadeHold) / (float) fadeTime));
+  if (millis < fadeDelay) { return color; }
+  if (millis > (fadeDelay > fadeTime)) { return black; }
+  return RgbColor::LinearBlend(color, black, ((float) (millis - fadeDelay) / (float) fadeTime));
 }
 
 RgbColor Tracker::stripIsWider(int pixelIndex) {

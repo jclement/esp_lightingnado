@@ -26,7 +26,7 @@ private:
   int dataArray[DATA_ARR_LENGTH];
   int stripLength = 0;
   int fadeTime = 200; // in milliseconds
-  int fadeHold = 100;
+  int fadeDelay = 100;
   RgbColor calculateColour(int millis);
   RgbColor stripIsWider(int pixelIndex);
   RgbColor stripIsNarrowerComplex(int pixelIndex);
