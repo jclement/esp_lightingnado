@@ -16,6 +16,7 @@ void Tracker::update(char* data) {
 }
 
 void Tracker::tick(unsigned long elapsed) {
+  if (elapsed == 0) { return; } // let's save some effort if no measured time has passed
   for (int i = 0;i < DATA_ARR_LENGTH;i++) {
     if (dataArray[i] > 0) { dataArray[i] += elapsed; }
     if (dataArray[i] > (fadeTime + fadeDelay)) { dataArray[i] = -1; }
@@ -25,7 +26,7 @@ void Tracker::tick(unsigned long elapsed) {
 
 RgbColor Tracker::calculateColour(int millis) {
   if (millis < fadeDelay) { return color; }
-  if (millis > (fadeDelay > fadeTime)) { return black; }
+  if (millis > (fadeDelay + fadeTime)) { return black; }
   return RgbColor::LinearBlend(color, black, ((float) (millis - fadeDelay) / (float) fadeTime));
 }
 
@@ -44,48 +45,9 @@ RgbColor Tracker::stripIsWider(int pixelIndex) {
   }
 }
 
-RgbColor Tracker::stripIsNarrowerComplex(int pixelIndex) {
-  float width, center, lowerBound, upperBound;
-  float totalR, totalG, totalB;
-  RgbColor tempColour;
-  int intLower, intUpper;
-  // we need to calculate the "width" of a pixel in dataArray space
-  width = ((float) DATA_ARR_LENGTH / (float) stripLength);
-  // now assume we're at the center of that width
-  center = ((float) pixelIndex / (float) stripLength);
-  lowerBound = center - (width * 0.5f);
-  intLower = (int) lowerBound;  
-  upperBound = center + (width * 0.5f);
-  intUpper = ((upperBound - (int) upperBound) == 0.0f ? (int) upperBound : ((int) upperBound) + 1);
-  // if we stopped exactly on a dataArray position only loop to there, otherwise we need to loop to the next one up  
-  for (int i = (int) lowerBound; i < intUpper; i++) {
-    // for stripLength of 5, dataArray length of 12
-    // calculate for LED 1 = centered on 2.4
-    // min 1.2, max 3.6
-    // loop from 1 to 4
-    // 0.8 * 1 + 0.2 * 2
-    // 1 * 2
-    // 1 * 3
-    // 0.6 * 3  + 0.4 * 4
-    // all divided by 4
-    //todo: FINISH THIS!
-    if (i == (int) lowerBound) {
-      
-    } else if (i == ((int) upperBound) + 1) {
-      
-    } else {
-      RgbColor tempColor = calculateColour(dataArray[i]);
-      totalR += tempColor.R;
-      totalG += tempColor.G;
-      totalB += tempColor.B;
-    }
-    // let's just re-use a variable because I hate using memory
-    intLower = (intUpper - intLower);    
-    return RgbColor((int) ((totalR / (float)intLower) * 255.0f), (int) ((totalG / (float)intLower) * 255.0f), (int) ((totalB / (float)intLower) * 255.0f));
-  }
-}
-
-RgbColor Tracker::stripIsNarrowerSimple(int pixelIndex) {  
+RgbColor Tracker::stripIsNarrower(int pixelIndex) {
+  // if the strip has less pixels than we have buckets of tracker data, just take something close
+  // this might go wrong if pixelIndex == stripLength but we catch that case at the next level up
   return calculateColour(dataArray[(int) (((float) pixelIndex / (float) stripLength) * (float) DATA_ARR_LENGTH)]);
 }
                                       
@@ -99,7 +61,7 @@ void Tracker::updateFrame() {
     } else if (stripLength > DATA_ARR_LENGTH) {
       colour = stripIsWider(i);
     } else {
-      colour = stripIsNarrowerSimple(i);
+      colour = stripIsNarrower(i);
     }
     strip->SetPixelColor(i, colour);
   }
@@ -134,14 +96,6 @@ void Tracker::processData(char* data) {
   if (fadeDelay > 0) { fadeDelay = 0; }
   
   
-  if (root.containsKey("decay")) {
-    this->decayRate = root["decay"];
-  }
-
-  if (this->decayRate < 1 || this->decayRate > 255) {
-    this->decayRate = 1;
-  }
-
   if (root.containsKey("color")) {
     this->color = RgbColor(root["color"][0], root["color"][1], root["color"][2]);
   }

@@ -22,16 +22,23 @@ public:
 private:
   NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
   int state = 0;
-  int stateTime[NUM_STATES] = {5000,30000,10000,10000,10000,1500};
+  int stateTime[NUM_STATES] = {5000,30000,10000,10000,10000,2000};
   int length = 0;
   unsigned int currentDelay = 0;
   bool directionRight = true;
   int delayDuration = 10;
   void processData(char* data, bool reset);
   void updateFrame();
+  void blinkFullStrip(int numLoops, int arrayLength, byte* dataArray, RgbColor colour);
   unsigned long timeSinceLastRun = 0;
-  byte flashArray[4] = {B10001000, B10001000, B10101010, B00001111};
-  byte beatArray[1] = {B00101000};  
+  const int flashArrayLength = 16;
+  const int beatArrayLength = 4;
+  const int flashLoops = 2;
+  const int beatLoops = 10;
+  byte beatArray[4] = {B00000000, B00010001, B00000000, B00000000};  
+  byte flashArray[16] = {B00000001, B00000001, B00010001, B00000001, B00000001, B00000001, B00001111, B00001111,
+                        B00010001, B00010001, B01010101, B01010101, B00000011, B00001111, B11111111, B11111111};
+  RgbColor flashColour = RgbColor(40,40,40);
   RgbColor beatColour = RgbColor(80,0,0);
   RgbColor black = RgbColor(0,0,0);
   byte sliderPositions[2];

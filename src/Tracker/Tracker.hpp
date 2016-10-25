@@ -20,8 +20,7 @@ private:
   void newPixels(char* data);
   void updateFrame();
   NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
-  int decayRate = 10;
-  RgbColor color = RgbColor(200,200,200);
+  RgbColor color = RgbColor(255,255,255);
   RgbColor black = RgbColor(0,0,0);
   int dataArray[DATA_ARR_LENGTH];
   int stripLength = 0;
@@ -29,8 +28,7 @@ private:
   int fadeDelay = 100;
   RgbColor calculateColour(int millis);
   RgbColor stripIsWider(int pixelIndex);
-  RgbColor stripIsNarrowerComplex(int pixelIndex);
-  RgbColor stripIsNarrowerSimple(int pixelIndex);
+  RgbColor stripIsNarrower(int pixelIndex);
 };
 
 #endif

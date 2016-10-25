@@ -11,12 +11,13 @@ void Halloween::update(char* data) {
 }
 
 void Halloween::tick(unsigned long elapsed) {
+  if (elapsed == 0) { return; } // don't bother updating the frame if no time has passed
   timeSinceLastRun += elapsed;
   // advance state machine until we've caught up
   while (timeSinceLastRun >= stateTime[state]) {
     timeSinceLastRun -= stateTime[state];
-    /*if (state != OFF_STATE) { state = OFF_STATE; }
-    else { state = random(NUM_STATES); } // otherwise pick one at random*/
+    if (state != OFF_STATE) { state = OFF_STATE; }
+    else { state = (random(NUM_STATES - 1)) + 1; } // otherwise pick one at random that is NOT the off state
   }
   updateFrame();
 }
@@ -28,53 +29,87 @@ const char* Halloween::description() {
 void Halloween::processData(char* data, bool reset) {
   StaticJsonBuffer<500> buf;
   if (reset) { 
-    state = 1; 
+    state = BEAT_STATE; 
   }
   updateFrame();
 }
 
+void Halloween::blinkFullStrip(int numLoops, int arrayLength, byte* dataArray, RgbColor colour) {
+  int blockTime = stateTime[state] / (8 * numLoops * arrayLength);
+  int loopTime = stateTime[state] / numLoops;
+  int upperBlock = (timeSinceLastRun % loopTime) / blockTime;
+  int lowerBlock = upperBlock == 0 ? (arrayLength - 1) : upperBlock - 1;
+  strip->ClearTo(RgbColor::LinearBlend((dataArray[lowerBlock / 8] & (B10000000 >> (lowerBlock % 8))) ? colour : black, 
+                                        (dataArray[upperBlock / 8] & (B10000000 >> (upperBlock % 8))) ? colour : black, 
+                                        (float) ((timeSinceLastRun % loopTime) % blockTime) / ((float) blockTime)));  
+}
+
 void Halloween::updateFrame() {
   int stripLength = strip->PixelCount();
-  int fadePosition;
-  RgbColor currentColour;
   strip->ClearTo(RgbColor(0,0,0));
-  int upperBlock = 0;
-  int lowerBlock = 0;
-  float blend = 0.0f;
-  RgbColor color1;
-  RgbColor color2;
   switch (state) {
     case OFF_STATE:
       break;
     case BEAT_STATE:
-      // set fadePosition based on our proportional position between bits in the current block
-      // 8 bits to the pattern, 5000 msec per cycle
-      //[625, 1250, 1875, 2500, 3125, 3750, 4375, 5000]
-      upperBlock = (timeSinceLastRun % 5000) / 625;
-      lowerBlock = upperBlock - 1;
-      if (lowerBlock < 0) { lowerBlock = 7; }
-      blend = (float) ((timeSinceLastRun % 5000) % 625) / 625.0f;
-      color1 = ((beatArray[0] << lowerBlock) & B10000000) ? beatColour : black;
-      color2 = ((beatArray[0] << upperBlock) & B10000000) ? beatColour : black;
-      currentColour = RgbColor::LinearBlend(color1, color2, blend);
-      strip->ClearTo(currentColour);
+      blinkFullStrip(beatLoops, beatArrayLength, beatArray, beatColour);
       break;
-    case SLIDERS_STATE: // orange sliders
-      strip->SetPixelColor(state, RgbColor(220, 78, 0));
+    case FLASH_STATE:
+      blinkFullStrip(flashLoops, flashArrayLength, flashArray, flashColour);
       break;
-    case TWINKLE_STATE: // orange twinkle
-      strip->SetPixelColor(state, RgbColor(220, 78, 0));
+    case SLIDERS_STATE:
+      strip->SetPixelColor(state, RgbColor(255, 0, 0));
+      break;
+    case TWINKLE_STATE:
+      strip->SetPixelColor(state, RgbColor(0, 255, 0));
       break;
     case TRACERS_STATE:
-      strip->SetPixelColor(state, RgbColor(0,255,0));
-    case FLASH_STATE: // flash white
-      if ((timeSinceLastRun / 10) % 10 == 0) {
-        strip->ClearTo(RgbColor(255,255,255));
-      }
-      break;      
+      strip->SetPixelColor(state, RgbColor(0,0,255));
+      break;
   }
   strip->Show();
 }
+
+
+//void Halloween::updateFrame() {
+//  int stripLength = strip->PixelCount();
+//  RgbColor currentColour;
+//  strip->ClearTo(RgbColor(0,0,0));
+//  int upperBlock = 0;
+//  int lowerBlock = 0;
+//  float blend = 0.0f;
+//  RgbColor color1;
+//  RgbColor color2;
+//  int blockTime = stateTime[state] / (8 * (state == BEAT_STATE ? beatLoops : flashLoops) * (state == BEAT_STATE ? beatArrayLength : flashArrayLength));
+//  byte* useArray = (state == BEAT_STATE ? beatArray : flashArray);
+//  RgbColor useColour = (state == BEAT_STATE ? beatColour : flashColour);
+//  int arrayMaxValue = (state == BEAT_STATE ? beatArrayLength : flashArrayLength) - 1;
+//  int loopTime = stateTime[state] / (state == BEAT_STATE ? beatLoops : flashLoops);
+//  switch (state) {
+//    case OFF_STATE:
+//      break;
+//    case BEAT_STATE:
+//    case FLASH_STATE:
+//      upperBlock = (timeSinceLastRun % loopTime) / blockTime;
+//      lowerBlock = upperBlock - 1;
+//      if (lowerBlock < 0) { lowerBlock = arrayMaxValue; }
+//      blend = (float) ((timeSinceLastRun % loopTime) % blockTime) / ((float) blockTime);
+//      color1 = (useArray[lowerBlock / 8] & (B10000000 >> (lowerBlock % 8))) ? useColour : black;
+//      color2 = (useArray[upperBlock / 8] & (B10000000 >> (upperBlock % 8))) ? useColour : black;
+//      currentColour = RgbColor::LinearBlend(color1, color2, blend);
+//      strip->ClearTo(currentColour);
+//      break;
+//    case SLIDERS_STATE: // orange sliders
+//      strip->SetPixelColor(state, RgbColor(255, 0, 0));
+//      break;
+//    case TWINKLE_STATE: // orange twinkle
+//      strip->SetPixelColor(state, RgbColor(0, 255, 0));
+//      break;
+//    case TRACERS_STATE:
+//      strip->SetPixelColor(state, RgbColor(0,0,255));
+//      break;
+//  }
+//  strip->Show();
+//}
 
 Halloween::~Halloween() {
 
