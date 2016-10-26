@@ -12,14 +12,83 @@ void Halloween::update(char* data) {
 
 void Halloween::tick(unsigned long elapsed) {
   if (elapsed == 0) { return; } // don't bother updating the frame if no time has passed
-  timeSinceLastRun += elapsed;
+  timeInState += elapsed;
+  int currentState = state;
   // advance state machine until we've caught up
-  while (timeSinceLastRun >= stateTime[state]) {
-    timeSinceLastRun -= stateTime[state];
+  while (timeInState >= stateTime[state]) {
+    timeInState -= stateTime[state];
     if (state != OFF_STATE) { state = OFF_STATE; }
     else { state = (random(NUM_STATES - 1)) + 1; } // otherwise pick one at random that is NOT the off state
   }
+  // yeah we could have just guessed our way back into the same state we were in, but it would be weirder if the animation reset for what appears to be no reason
+  if (state != currentState) { initState(); effectLastRunTime = timeInState;} 
   updateFrame();
+}
+
+void Halloween::initState() {
+  Serial.print("initState s:");
+  Serial.println(state);
+  int i;
+  switch (state) { // beat and flash don't require any setup
+    case SLIDERS_STATE:
+      for (i = 0;i < numEffectItems;i++) {
+        effectItems[i].position = ((float) random(1000) / 1000.0f);
+        effectItems[i].width = 0.02f;
+        effectItems[i].speed = ((float) random(100) / 1000.0f);
+        effectItems[i].right = (i % 2) == 0 ? true : false;
+        effectItems[i].active = true;
+        int colourOffset = random(1000 / numEffectItems);
+        // let's start with a random small offset then space the colours evenly around the hue wheel        
+        effectItems[i].colour = RgbColor(HsbColor(((float) ((colourOffset + ((1000 * i) / numEffectItems)) % 1000) / 1000.0f), 1.0f, 0.25f));
+      }      
+      break;
+    case TRACERS_STATE:
+      for (i = 0;i < numEffectItems;i++) {
+        effectItems[i].position = ((float) random(1000) / 1000.0f);
+        effectItems[i].width = 0.1f;
+        effectItems[i].speed = ((float) random(100) / 1000.0f);
+        effectItems[i].right = (i % 2) == 0 ? true : false;
+        effectItems[i].active = true;
+        int colourOffset = random(1000 / numEffectItems);
+        // let's start with a random small offset then space the colours evenly around the hue wheel        
+        effectItems[i].colour = RgbColor(HsbColor(((float) ((colourOffset + ((1000 * i) / numEffectItems)) % 1000) / 1000.0f), 1.0f, 0.25f));
+      }            
+      break;
+    case TWINKLE_STATE:
+      // not sure what this needs yet
+      break;
+  }
+}
+
+void Halloween::drawSliders() {
+  Serial.print("drawSliders");
+  int stripLength = strip->PixelCount();  
+  float currentPos;
+  int i, j;
+  // advance all sliders by the elapsed time
+  for (j = 0;j < numEffectItems;j++) {
+    if (effectItems[j].right) {
+      effectItems[j].position += (effectItems[j].speed * (timeInState - effectLastRunTime)) / 1000.0f;
+    } else {
+      effectItems[j].position -= (effectItems[j].speed * (timeInState - effectLastRunTime)) / 1000.0f;
+    }
+    if ((effectItems[j].position > (1.0f + (effectItems[j].width / 2.0f))) || 
+        (effectItems[j].position < (effectItems[j].width / -2.0f))) {
+      effectItems[j].position = ((float) random(1000) / 1000.0f);
+      effectItems[j].width = 0.02f;
+      effectItems[j].speed = ((float) random(100) / 1000.0f);
+    }
+  }
+  // now draw them
+  for (i = 0; i < stripLength;i++) {
+    currentPos = ((float) i / (float) stripLength);
+    for (j = 0;j < numEffectItems;j++) {
+      // check if we are in the range of any effects!
+      if (effectItems[j].active && (fabs(effectItems[j].position - currentPos) < effectItems[j].width)) {
+        strip->SetPixelColor(i, effectItems[j].colour);
+      }
+    }
+  }
 }
 
 const char* Halloween::description() {
@@ -29,7 +98,8 @@ const char* Halloween::description() {
 void Halloween::processData(char* data, bool reset) {
   StaticJsonBuffer<500> buf;
   if (reset) { 
-    state = BEAT_STATE; 
+    state = SLIDERS_STATE;
+    initState();
   }
   updateFrame();
 }
@@ -37,15 +107,25 @@ void Halloween::processData(char* data, bool reset) {
 void Halloween::blinkFullStrip(int numLoops, int arrayLength, byte* dataArray, RgbColor colour) {
   int blockTime = stateTime[state] / (8 * numLoops * arrayLength);
   int loopTime = stateTime[state] / numLoops;
-  int upperBlock = (timeSinceLastRun % loopTime) / blockTime;
+  int upperBlock = (timeInState % loopTime) / blockTime;
   int lowerBlock = upperBlock == 0 ? (arrayLength - 1) : upperBlock - 1;
   strip->ClearTo(RgbColor::LinearBlend((dataArray[lowerBlock / 8] & (B10000000 >> (lowerBlock % 8))) ? colour : black, 
                                         (dataArray[upperBlock / 8] & (B10000000 >> (upperBlock % 8))) ? colour : black, 
-                                        (float) ((timeSinceLastRun % loopTime) % blockTime) / ((float) blockTime)));  
+                                        (float) ((timeInState % loopTime) % blockTime) / ((float) blockTime)));  
+}
+
+
+void Halloween::drawTracers() {
+  strip->SetPixelColor(state, RgbColor(0,0,255));
+}
+
+void Halloween::drawTwinkle() {
+  strip->SetPixelColor(state, RgbColor(0, 255, 0));
 }
 
 void Halloween::updateFrame() {
-  int stripLength = strip->PixelCount();
+  Serial.print("updateFrame s:");
+  Serial.println(state);
   strip->ClearTo(RgbColor(0,0,0));
   switch (state) {
     case OFF_STATE:
@@ -57,59 +137,18 @@ void Halloween::updateFrame() {
       blinkFullStrip(flashLoops, flashArrayLength, flashArray, flashColour);
       break;
     case SLIDERS_STATE:
-      strip->SetPixelColor(state, RgbColor(255, 0, 0));
+      drawSliders();
       break;
     case TWINKLE_STATE:
-      strip->SetPixelColor(state, RgbColor(0, 255, 0));
+      drawTwinkle();
       break;
     case TRACERS_STATE:
-      strip->SetPixelColor(state, RgbColor(0,0,255));
+      drawTracers();
       break;
   }
   strip->Show();
+  effectLastRunTime = timeInState;
 }
-
-
-//void Halloween::updateFrame() {
-//  int stripLength = strip->PixelCount();
-//  RgbColor currentColour;
-//  strip->ClearTo(RgbColor(0,0,0));
-//  int upperBlock = 0;
-//  int lowerBlock = 0;
-//  float blend = 0.0f;
-//  RgbColor color1;
-//  RgbColor color2;
-//  int blockTime = stateTime[state] / (8 * (state == BEAT_STATE ? beatLoops : flashLoops) * (state == BEAT_STATE ? beatArrayLength : flashArrayLength));
-//  byte* useArray = (state == BEAT_STATE ? beatArray : flashArray);
-//  RgbColor useColour = (state == BEAT_STATE ? beatColour : flashColour);
-//  int arrayMaxValue = (state == BEAT_STATE ? beatArrayLength : flashArrayLength) - 1;
-//  int loopTime = stateTime[state] / (state == BEAT_STATE ? beatLoops : flashLoops);
-//  switch (state) {
-//    case OFF_STATE:
-//      break;
-//    case BEAT_STATE:
-//    case FLASH_STATE:
-//      upperBlock = (timeSinceLastRun % loopTime) / blockTime;
-//      lowerBlock = upperBlock - 1;
-//      if (lowerBlock < 0) { lowerBlock = arrayMaxValue; }
-//      blend = (float) ((timeSinceLastRun % loopTime) % blockTime) / ((float) blockTime);
-//      color1 = (useArray[lowerBlock / 8] & (B10000000 >> (lowerBlock % 8))) ? useColour : black;
-//      color2 = (useArray[upperBlock / 8] & (B10000000 >> (upperBlock % 8))) ? useColour : black;
-//      currentColour = RgbColor::LinearBlend(color1, color2, blend);
-//      strip->ClearTo(currentColour);
-//      break;
-//    case SLIDERS_STATE: // orange sliders
-//      strip->SetPixelColor(state, RgbColor(255, 0, 0));
-//      break;
-//    case TWINKLE_STATE: // orange twinkle
-//      strip->SetPixelColor(state, RgbColor(0, 255, 0));
-//      break;
-//    case TRACERS_STATE:
-//      strip->SetPixelColor(state, RgbColor(0,0,255));
-//      break;
-//  }
-//  strip->Show();
-//}
 
 Halloween::~Halloween() {
 

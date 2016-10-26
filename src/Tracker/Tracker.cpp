@@ -18,13 +18,14 @@ void Tracker::update(char* data) {
 void Tracker::tick(unsigned long elapsed) {
   if (elapsed == 0) { return; } // let's save some effort if no measured time has passed
   for (int i = 0;i < DATA_ARR_LENGTH;i++) {
-    if (dataArray[i] > 0) { dataArray[i] += elapsed; }
+    if (dataArray[i] >= 0) { dataArray[i] += elapsed; }
     if (dataArray[i] > (fadeTime + fadeDelay)) { dataArray[i] = -1; }
   }
   updateFrame();
 }
 
 RgbColor Tracker::calculateColour(int millis) {
+  if (millis < 0) { return black; }
   if (millis < fadeDelay) { return color; }
   if (millis > (fadeDelay + fadeTime)) { return black; }
   return RgbColor::LinearBlend(color, black, ((float) (millis - fadeDelay) / (float) fadeTime));
@@ -53,6 +54,7 @@ RgbColor Tracker::stripIsNarrower(int pixelIndex) {
                                       
 void Tracker::updateFrame() {
   RgbColor colour;
+  strip->ClearTo(black);
   for (int i = 0;i < stripLength;i++) {
     if (i == 0) {
       colour = calculateColour(dataArray[0]);
@@ -65,6 +67,7 @@ void Tracker::updateFrame() {
     }
     strip->SetPixelColor(i, colour);
   }
+  strip->Show();
 }
 
 void Tracker::process(char* data) {

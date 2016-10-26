@@ -442,6 +442,9 @@ void switchMode(char mode, char* payload)
   char msg[100] = "Switch:";
   strcat(msg, currentMode->description());
   mqttClient.publish(topic_status_mode, 2, true, msg);
+  
+  Serial.print("Switch: ");
+  Serial.println(currentMode->description());
 
   
   if (currentMode->detailsTopic() != NULL) {
