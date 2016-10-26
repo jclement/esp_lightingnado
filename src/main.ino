@@ -234,23 +234,23 @@ void setup() {
   Serial.print(F("LED Count: "));
   Serial.println(led_count);
 
-  topic_status = (char*) malloc(strlen(node_name) + 13);
-  strcpy(topic_status, "/esp/");
+  topic_status = (char*) malloc(strlen(node_name) + 12);
+  strcpy(topic_status, "esp/");
   strcat(topic_status, node_name);
   strcat(topic_status, "/status");
 
-  topic_control = (char*) malloc(strlen(node_name) + 14);
-  strcpy(topic_control, "/esp/");
+  topic_control = (char*) malloc(strlen(node_name) + 13);
+  strcpy(topic_control, "esp/");
   strcat(topic_control, node_name);
   strcat(topic_control, "/control");
 
-  topic_status_mode = (char*) malloc(strlen(node_name) + 18);
-  strcpy(topic_status_mode, "/esp/");
+  topic_status_mode = (char*) malloc(strlen(node_name) + 17);
+  strcpy(topic_status_mode, "esp/");
   strcat(topic_status_mode, node_name);
   strcat(topic_status_mode, "/status/mode");
   
-  topic_status_detail = (char*) malloc(strlen(node_name) + 20);
-  strcpy(topic_status_detail, "/esp/");
+  topic_status_detail = (char*) malloc(strlen(node_name) + 19);
+  strcpy(topic_status_detail, "esp/");
   strcat(topic_status_detail, node_name);
   strcat(topic_status_detail, "/status/detail");
   
@@ -422,7 +422,7 @@ void switchMode(char mode, char* payload)
     if (currentMode->detailsTopic() != NULL) {
       //subscribe to the new details topic
       char topic[100];
-      strcpy(topic, "/esp/");
+      strcpy(topic, "esp/");
       strcat(topic, node_name);
       strcat(topic, "/detail/");
       strncat(topic, currentMode->detailsTopic(), (87 - strlen(node_name)));
@@ -450,7 +450,7 @@ void switchMode(char mode, char* payload)
   if (currentMode->detailsTopic() != NULL) {
     //subscribe to the new details topic
     char topic[100];
-    strcpy(topic, "/esp/");
+    strcpy(topic, "esp/");
     strcat(topic, node_name);
     strcat(topic, "/detail/");
     strncat(topic, currentMode->detailsTopic(), (87 - strlen(node_name)));
