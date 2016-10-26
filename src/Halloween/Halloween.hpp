@@ -31,12 +31,10 @@ public:
 private:
   NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
   int state = 0;
-//  int stateTime[NUM_STATES] = {10000,30000,30000,30000,30000,2000};
-  int stateTime[NUM_STATES] = {100,300,300,300,300,2000};
+  int stateTime[NUM_STATES] = {10000,30000,30000,30000,30000,2000};
   int length = 0;
   unsigned int currentDelay = 0;
-  bool directionRight = true;
-  int delayDuration = 10;
+  bool blankBetween = true;
   void processData(char* data, bool reset);
   void updateFrame();
   void blinkFullStrip(int numLoops, int arrayLength, byte* dataArray, RgbColor colour);
@@ -47,8 +45,8 @@ private:
   unsigned long timeInState = 0;
   const int flashArrayLength = 16;
   const int beatArrayLength = 4;
-  const int flashLoops = 2;
-  const int beatLoops = 10;
+  int flashLoops = 1;
+  int beatLoops = 1;
   byte beatArray[4] = {B00000000, B00010001, B00000000, B00000000};  
   byte flashArray[16] = {B00000001, B00000001, B00010001, B00000001, B00000001, B00000001, B00001111, B00001111,
                         B00010001, B00010001, B01010101, B01010101, B00000011, B00001111, B11111111, B11111111};
