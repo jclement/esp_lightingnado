@@ -20,7 +20,7 @@ private:
   void newPixels(char* data);
   void updateFrame();
   NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
-  RgbColor color = RgbColor(255,255,255);
+  RgbColor colour = RgbColor(255,255,255);
   RgbColor black = RgbColor(0,0,0);
   int dataArray[DATA_ARR_LENGTH];
   int stripLength = 0;

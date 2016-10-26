@@ -340,10 +340,10 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
     strcpy(pendingControlMessage, payload);
     hasUnprocessedControlMessage = true;
   } else { // must be a detail message!
-    Serial.print("Received message for topic: ");
-    Serial.println(topic);
-    Serial.print("Content: ");
-    Serial.println(payload);
+    //Serial.print("Received message for topic: ");
+    //Serial.println(topic);
+    //Serial.print("Content: ");
+    //Serial.println(payload);
     if (hasUnprocessedDetailMessage) return;
     if (len >= MAX_MESSAGE_SIZE) return;
     strcpy(pendingDetailMessage, payload);

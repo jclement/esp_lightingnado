@@ -8,11 +8,11 @@ Tracker::Tracker(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data
   }
   this->strip = strip;
   stripLength = strip->PixelCount();
-  this->processData(data);
+  processData(data);
 }
 
 void Tracker::update(char* data) {
-  this->processData(data);
+  processData(data);
 }
 
 void Tracker::tick(unsigned long elapsed) {
@@ -26,9 +26,9 @@ void Tracker::tick(unsigned long elapsed) {
 
 RgbColor Tracker::calculateColour(int millis) {
   if (millis < 0) { return black; }
-  if (millis < fadeDelay) { return color; }
+  if (millis < fadeDelay) { return colour; }
   if (millis > (fadeDelay + fadeTime)) { return black; }
-  return RgbColor::LinearBlend(color, black, ((float) (millis - fadeDelay) / (float) fadeTime));
+  return RgbColor::LinearBlend(colour, black, ((float) (millis - fadeDelay) / (float) fadeTime));
 }
 
 RgbColor Tracker::stripIsWider(int pixelIndex) {
@@ -78,7 +78,8 @@ void Tracker::process(char* data) {
   for(int i=0; i<root["data"].size(); i++) {
     counter = root["data"][i];
     dataArray[counter] = 0;
-  }  
+  }
+  updateFrame();
 }
 
 void Tracker::processData(char* data) {
@@ -90,23 +91,24 @@ void Tracker::processData(char* data) {
     fadeTime = root["fadeTime"];
   }
   if (fadeTime > 5000) { fadeTime = 5000; }
-  if (fadeTime > 0) { fadeTime = 0; }
+  if (fadeTime < 0) { fadeTime = 0; }
   
   if (root.containsKey("fadeDelay")) {
     fadeDelay = root["fadeDelay"];
   }
   if (fadeDelay > 5000) { fadeDelay = 5000; }
-  if (fadeDelay > 0) { fadeDelay = 0; }
+  if (fadeDelay < 0) { fadeDelay = 0; }
   
   
-  if (root.containsKey("color")) {
-    this->color = RgbColor(root["color"][0], root["color"][1], root["color"][2]);
+  if (root.containsKey("colour")) {
+    this->colour = RgbColor(root["colour"][0], root["colour"][1], root["colour"][2]);
   }
   int counter;
   for(int i=0; i<root["data"].size(); i++) {
     counter = root["data"][i];
     dataArray[counter] = 0;
   }
+  updateFrame();
 }
 
 Tracker::~Tracker() {
