@@ -17,8 +17,12 @@ void Halloween::tick(unsigned long elapsed) {
   // advance state machine until we've caught up
   while (timeInState >= stateTime[state]) {
     timeInState -= stateTime[state];
-    if (state != OFF_STATE) { state = OFF_STATE; }
-    else { state = (random(NUM_STATES - 1)) + 1; } // otherwise pick one at random that is NOT the off state
+    if (blankBetween) {
+      if (state != OFF_STATE) { state = OFF_STATE; }
+      else { state = (random(NUM_STATES - 1)) + 1; } // otherwise pick one at random that is NOT the off state
+    } else {
+      state = (random(NUM_STATES - 1)) + 1;
+    }
   }
   // yeah we could have just guessed our way back into the same state we were in, but it would be weirder if the animation reset for what appears to be no reason
   if (state != currentState) { initState(); effectLastRunTime = timeInState;} 
@@ -26,8 +30,8 @@ void Halloween::tick(unsigned long elapsed) {
 }
 
 void Halloween::initState() {
-  Serial.print("initState s:");
-  Serial.println(state);
+//  Serial.print("initState s:");
+//  Serial.println(state);
   int i;
   switch (state) { // beat and flash don't require any setup
     case SLIDERS_STATE:
@@ -61,7 +65,7 @@ void Halloween::initState() {
 }
 
 void Halloween::drawSliders() {
-  Serial.print("drawSliders");
+//  Serial.print("drawSliders");
   int stripLength = strip->PixelCount();  
   float currentPos;
   int i, j;
@@ -96,22 +100,99 @@ const char* Halloween::description() {
 }
 
 void Halloween::processData(char* data, bool reset) {
-  StaticJsonBuffer<500> buf;
+  StaticJsonBuffer<2000> buf;
+  JsonObject& root = buf.parseObject(data);
   if (reset) { 
     state = SLIDERS_STATE;
     initState();
+  }
+  if (root.success()) {
+    if (root.containsKey("flashLoops")) {
+      flashLoops = root["flashLoops"];
+      if (flashLoops < 1) {
+        flashLoops = 1;
+      } else if (flashLoops > 100) {
+        flashLoops = 100;
+      }
+    }
+    if (root.containsKey("beatLoops")) {
+      beatLoops = root["beatLoops"];
+      if (beatLoops < 1) {
+        beatLoops = 1;
+      } else if (beatLoops > 100) {
+        beatLoops = 100;
+      }
+    }
+    if (root.containsKey("flashTime")) {
+      stateTime[FLASH_STATE] = root["flashTime"];
+    }
+    if (root.containsKey("beatTime")) {
+      stateTime[BEAT_STATE] = root["beatTime"];
+    }
+    if (root.containsKey("sliderTime")) {
+      stateTime[SLIDERS_STATE] = root["sliderTime"];
+    }
+    if (root.containsKey("tracerTime")) {
+      stateTime[TRACERS_STATE] = root["tracerTime"];
+    }
+    if (root.containsKey("twinkleTime")) {
+      stateTime[TWINKLE_STATE] = root["twinkleTime"];
+    }
+    if (root.containsKey("flashColour")) {
+      flashColour = RgbColor(root["flashColour"][0], root["flashColour"][1], root["flashColour"][2]);
+    }
+    if (root.containsKey("beatColour")) {
+      beatColour = RgbColor(root["beatColour"][0], root["beatColour"][1], root["beatColour"][2]);
+    }
+    for (int i = 0;i < NUM_STATES;i++) {
+      if (stateTime[i] > 100000) {
+        stateTime[i] = 100000;
+      }
+      if (stateTime[i] < 100) {
+        stateTime[i] = 100;
+      }
+    }
+    if (root.containsKey("blankBetween")) {
+      blankBetween = root["blankBetween"];
+    }
   }
   updateFrame();
 }
 
 void Halloween::blinkFullStrip(int numLoops, int arrayLength, byte* dataArray, RgbColor colour) {
+//  Serial.print("blinkFullStrip(");
+//  Serial.print(numLoops);
+//  Serial.print(",");
+//  Serial.print(arrayLength);
+//  Serial.print(",[");
+//  for (int i = 0;i < arrayLength;i++) {
+//    Serial.print(dataArray[i]);
+//    Serial.print(",");
+//  }
+//  Serial.print("],(");
+//  Serial.print(colour.R);
+//  Serial.print(",");
+//  Serial.print(colour.G);
+//  Serial.print(",");
+//  Serial.print(colour.B);
+//  Serial.println(")");
   int blockTime = stateTime[state] / (8 * numLoops * arrayLength);
+  if (blockTime < 1) { blockTime = 1; }
+//  Serial.print("1: ");
+//  Serial.println(blockTime);
   int loopTime = stateTime[state] / numLoops;
+//  Serial.print("2: ");
+//  Serial.println(loopTime);
   int upperBlock = (timeInState % loopTime) / blockTime;
+//  Serial.print("3: ");
+//  Serial.println(upperBlock);
   int lowerBlock = upperBlock == 0 ? (arrayLength - 1) : upperBlock - 1;
+//  Serial.print("4: ");
+//  Serial.println(lowerBlock);
   strip->ClearTo(RgbColor::LinearBlend((dataArray[lowerBlock / 8] & (B10000000 >> (lowerBlock % 8))) ? colour : black, 
                                         (dataArray[upperBlock / 8] & (B10000000 >> (upperBlock % 8))) ? colour : black, 
                                         (float) ((timeInState % loopTime) % blockTime) / ((float) blockTime)));  
+//  Serial.println("5");
 }
 
 
@@ -124,8 +205,8 @@ void Halloween::drawTwinkle() {
 }
 
 void Halloween::updateFrame() {
-  Serial.print("updateFrame s:");
-  Serial.println(state);
+//  Serial.print("updateFrame s:");
+//  Serial.println(state);
   strip->ClearTo(RgbColor(0,0,0));
   switch (state) {
     case OFF_STATE:
@@ -147,7 +228,9 @@ void Halloween::updateFrame() {
       break;
   }
   strip->Show();
+//  Serial.println("E");
   effectLastRunTime = timeInState;
+//  Serial.println("F");
 }
 
 Halloween::~Halloween() {
