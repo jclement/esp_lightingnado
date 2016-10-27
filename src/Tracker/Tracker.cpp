@@ -2,12 +2,12 @@
 #include "ArduinoJson.h"
 
 Tracker::Tracker(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data) {
-  int i;
-  for (i = 0;i < 100;i++) {
-    dataArray[i] = -1;
-  }
   this->strip = strip;
   stripLength = strip->PixelCount();
+  dataArray = new int[dataArrayLength];
+  for (int i = 0;i < dataArrayLength;i++) {
+    dataArray[i] = -1;
+  }
   processData(data);
 }
 
@@ -17,7 +17,8 @@ void Tracker::update(char* data) {
 
 void Tracker::tick(unsigned long elapsed) {
   if (elapsed == 0) { return; } // let's save some effort if no measured time has passed
-  for (int i = 0;i < DATA_ARR_LENGTH;i++) {
+  if (lock == 1) { Serial.println("tick lock violation!"); }
+  for (int i = 0;i < dataArrayLength;i++) {
     if (dataArray[i] >= 0) { dataArray[i] += elapsed; }
     if (dataArray[i] > (fadeTime + fadeDelay)) { dataArray[i] = -1; }
   }
@@ -34,7 +35,7 @@ RgbColor Tracker::calculateColour(int millis) {
 RgbColor Tracker::stripIsWider(int pixelIndex) {
   int lowerBound, upperBound;
   float remainder;
-  remainder = (((float) pixelIndex) / ((float) stripLength) * (float) DATA_ARR_LENGTH);
+  remainder = (((float) pixelIndex) / ((float) stripLength) * (float) dataArrayLength);
   lowerBound = (int) remainder;
   remainder -= (float) lowerBound;
   upperBound = lowerBound + 1;
@@ -49,23 +50,24 @@ RgbColor Tracker::stripIsWider(int pixelIndex) {
 RgbColor Tracker::stripIsNarrower(int pixelIndex) {
   // if the strip has less pixels than we have buckets of tracker data, just take something close
   // this might go wrong if pixelIndex == stripLength but we catch that case at the next level up
-  return calculateColour(dataArray[(int) (((float) pixelIndex / (float) stripLength) * (float) DATA_ARR_LENGTH)]);
+  return calculateColour(dataArray[(int) (((float) pixelIndex / (float) stripLength) * (float) dataArrayLength)]);
 }
                                       
 void Tracker::updateFrame() {
+  if (lock == 1) { Serial.println("updateFrame lock violation!"); }
   RgbColor colour;
   strip->ClearTo(black);
   for (int i = 0;i < stripLength;i++) {
     if (i == 0) {
       colour = calculateColour(dataArray[0]);
     } else if (i == (stripLength - 1)) {
-      colour = calculateColour(dataArray[(DATA_ARR_LENGTH - 1)]);
-    } else if (stripLength > DATA_ARR_LENGTH) {
+      colour = calculateColour(dataArray[(dataArrayLength - 1)]);
+    } else if (stripLength > dataArrayLength) {
       colour = stripIsWider(i);
     } else {
       colour = stripIsNarrower(i);
     }
-    strip->SetPixelColor(i, colour);
+    strip->SetPixelColor(flip ? (stripLength - 1) - i : i, colour);
   }
   strip->Show();
 }
@@ -75,9 +77,16 @@ void Tracker::process(char* data) {
   JsonObject& root = buf.parseObject(data);
   if (!root.success()) return;
   int counter;
-  for(int i=0; i<root["data"].size(); i++) {
-    counter = root["data"][i];
-    dataArray[counter] = 0;
+  if (root["data"].size() > dataArrayLength) {
+    for(int i=0; i<dataArrayLength; i++) {
+      counter = root["data"][i];
+      dataArray[counter] = 0;
+    }    
+  } else {
+    for(int i=0; i<root["data"].size(); i++) {
+      counter = root["data"][i];
+      dataArray[counter] = 0;
+    }    
   }
   updateFrame();
 }
@@ -103,13 +112,44 @@ void Tracker::processData(char* data) {
   if (root.containsKey("colour")) {
     this->colour = RgbColor(root["colour"][0], root["colour"][1], root["colour"][2]);
   }
+  if (root.containsKey("dataArrayLength")) {
+    lock = 1;
+    int oldLength = dataArrayLength;
+    dataArrayLength = root["dataArrayLength"];
+    if (dataArrayLength > 1000) { dataArrayLength = 1000; }
+    if (dataArrayLength < 1) { dataArrayLength = 1; }
+    Serial.print("new dataArrayLength: ");
+    Serial.println(dataArrayLength);
+    int* newArray = new int[dataArrayLength];
+    for (int i = 0;i < dataArrayLength;i++) {
+      newArray[i] = -1;
+    }
+    Serial.println("allocated");
+    delete[] dataArray;
+    Serial.println("deleted");
+    dataArray = newArray;
+    Serial.println("swapped");
+    lock = 0;
+  }
   int counter;
-  for(int i=0; i<root["data"].size(); i++) {
-    counter = root["data"][i];
-    dataArray[counter] = 0;
+  if (root["data"].size() > dataArrayLength) {
+    for(int i=0; i<dataArrayLength; i++) {
+      counter = root["data"][i];
+      dataArray[counter] = 0;
+    }    
+  } else {
+    for(int i=0; i<root["data"].size(); i++) {
+      counter = root["data"][i];
+      dataArray[counter] = 0;
+    }    
+  }
+  if (root.containsKey("flip")) {
+    flip = root["flip"];
   }
   updateFrame();
 }
 
 Tracker::~Tracker() {
+  if (lock == 1) { Serial.println("destructor lock violation!"); }
+  delete[] dataArray;
 }

@@ -4,8 +4,6 @@
 #include <NeoPixelBus.h>
 #include "LightMode.hpp"
 
-#define DATA_ARR_LENGTH 100
-
 class Tracker: public LightMode {
 public:
   Tracker(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data);
@@ -22,13 +20,16 @@ private:
   NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
   RgbColor colour = RgbColor(255,255,255);
   RgbColor black = RgbColor(0,0,0);
-  int dataArray[DATA_ARR_LENGTH];
+  bool flip = false;
+  int* dataArray;
   int stripLength = 0;
   int fadeTime = 200; // in milliseconds
   int fadeDelay = 100;
+  int dataArrayLength = 10;
   RgbColor calculateColour(int millis);
   RgbColor stripIsWider(int pixelIndex);
   RgbColor stripIsNarrower(int pixelIndex);
+  volatile int lock = 0;
 };
 
 #endif

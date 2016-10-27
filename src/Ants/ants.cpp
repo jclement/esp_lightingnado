@@ -54,12 +54,18 @@ void Ants::processData(char* data) {
     this->delayDuration = 1;
   }
 
+  int oldNumColours = numColours;
   numColours = root["colors"].size();
-  colours = new RgbColor[numColours];
+  if (oldNumColours != numColours) {
+    if (colours != NULL) {
+      delete[] colours;
+    }
+    colours = new RgbColor[numColours];
+  }
   for(int i=0; i<numColours; i++) {
     colours[i] = RgbColor(root["colors"][i][0], root["colors"][i][1], root["colors"][i][2]);
   }
-
+  
   for(int i=0; i<this->strip->PixelCount(); i++) {
     this->strip->SetPixelColor(i, colours[i % numColours]);
   }
