@@ -3,11 +3,12 @@
 
 Ants::Ants(NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip, char* data) {
   this->strip = strip;
+  colours = new RgbColor[1];
+  colours[0] = RgbColor(0,0,0);
   this->processData(data);
 }
 
 void Ants::update(char* data) {
-  delete [] colours;
   this->processData(data);
 }
 
@@ -54,18 +55,16 @@ void Ants::processData(char* data) {
     this->delayDuration = 1;
   }
 
-  int oldNumColours = numColours;
-  numColours = root["colors"].size();
-  if (oldNumColours != numColours) {
-    if (colours != NULL) {
-      delete[] colours;
-    }
+  if (root.containsKey("colors")) {
+    numColours = root["colors"].size();
+    delete[] colours;
     colours = new RgbColor[numColours];
+    for(int i=0; i<numColours; i++) {
+      colours[i] = RgbColor(root["colors"][i][0], root["colors"][i][1], root["colors"][i][2]);
+    }
+    
   }
-  for(int i=0; i<numColours; i++) {
-    colours[i] = RgbColor(root["colors"][i][0], root["colors"][i][1], root["colors"][i][2]);
-  }
-  
+    
   for(int i=0; i<this->strip->PixelCount(); i++) {
     this->strip->SetPixelColor(i, colours[i % numColours]);
   }
