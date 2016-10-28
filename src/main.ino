@@ -58,8 +58,9 @@ unsigned long uptime;
 
 // temporary variables for incoming messages from MQTT
 #define MAX_MESSAGE_SIZE 1000
-bool hasUnprocessedControlMessage = false;
-bool hasUnprocessedDetailMessage = false;
+// maybe a little paranoid but hey, why not
+volatile bool hasUnprocessedControlMessage = false;
+volatile bool hasUnprocessedDetailMessage = false;
 char pendingControlMessage[MAX_MESSAGE_SIZE] = "";
 char pendingDetailMessage[MAX_MESSAGE_SIZE] = "";
 
@@ -331,24 +332,26 @@ void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
 }
 
 void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {  
+  // The only reason I can think of for the really random strange behaviour when changing modes or updating details is we are re-entering this handler
+  // let's just blanket turn off interrupts and turn them back on when we're done.  This makes me feel dirty but I can't make mine crash any more after doing it
+  // I thought this might be the cause because the ESP still sends MQTT keepalives when it locks up, so it's just our code that is falling over
+  // that is to say, it doesn't post "offline" to the queue until I actually hit the reset button
+  cli();
   if (strcmp(topic, topic_control) == 0) {
-    // if we haven't finished processing the current payload, skip this one
-    if (hasUnprocessedControlMessage) return;
     // if the message is too large, skip it
     if (len >= MAX_MESSAGE_SIZE) return;
+    // if we haven't finished processing the current payload, skip this one
+    if (hasUnprocessedControlMessage) return;
     // copy payload and flag that we have one!
-    strcpy(pendingControlMessage, payload);
     hasUnprocessedControlMessage = true;
+    strcpy(pendingControlMessage, payload);
   } else { // must be a detail message!
-    //Serial.print("Received message for topic: ");
-    //Serial.println(topic);
-    //Serial.print("Content: ");
-    //Serial.println(payload);
-    if (hasUnprocessedDetailMessage) return;
     if (len >= MAX_MESSAGE_SIZE) return;
-    strcpy(pendingDetailMessage, payload);
+    if (hasUnprocessedDetailMessage) return;
     hasUnprocessedDetailMessage = true;
+    strcpy(pendingDetailMessage, payload);
   }
+  sei();
 }
 
 /* ========================================================================================================
