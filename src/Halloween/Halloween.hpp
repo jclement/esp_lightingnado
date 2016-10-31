@@ -31,7 +31,7 @@ public:
 private:
   NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> *strip;
   int state = 0;
-  int stateTime[NUM_STATES] = {10000,30000,30000,30000,30000,2000};
+  int stateTime[NUM_STATES] = {2000,30000,30000,30000,30000,800};
   int length = 0;
   unsigned int currentDelay = 0;
   bool blankBetween = true;
@@ -46,7 +46,7 @@ private:
   const int flashArrayLength = 16;
   const int beatArrayLength = 4;
   int flashLoops = 1;
-  int beatLoops = 1;
+  int beatLoops = 10;
   byte beatArray[4] = {B00000000, B00010001, B00000000, B00000000};  
   byte flashArray[16] = {B00000001, B00000001, B00010001, B00000001, B00000001, B00000001, B00001111, B00001111,
                         B00010001, B00010001, B01010101, B01010101, B00000011, B00001111, B11111111, B11111111};

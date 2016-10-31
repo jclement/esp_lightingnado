@@ -34,6 +34,7 @@ void Halloween::initState() {
 //  Serial.println(state);
   int i;
   switch (state) { // beat and flash don't require any setup
+    case TRACERS_STATE:
     case SLIDERS_STATE:
       for (i = 0;i < numEffectItems;i++) {
         effectItems[i].position = ((float) random(1000) / 1000.0f);
@@ -46,21 +47,21 @@ void Halloween::initState() {
         effectItems[i].colour = RgbColor(HsbColor(((float) ((colourOffset + ((1000 * i) / numEffectItems)) % 1000) / 1000.0f), 1.0f, 0.25f));
       }      
       break;
-    case TRACERS_STATE:
-      for (i = 0;i < numEffectItems;i++) {
-        effectItems[i].position = ((float) random(1000) / 1000.0f);
-        effectItems[i].width = 0.1f;
-        effectItems[i].speed = ((float) random(100) / 1000.0f);
-        effectItems[i].right = (i % 2) == 0 ? true : false;
-        effectItems[i].active = true;
-        int colourOffset = random(1000 / numEffectItems);
-        // let's start with a random small offset then space the colours evenly around the hue wheel        
-        effectItems[i].colour = RgbColor(HsbColor(((float) ((colourOffset + ((1000 * i) / numEffectItems)) % 1000) / 1000.0f), 1.0f, 0.25f));
-      }            
-      break;
-    case TWINKLE_STATE:
-      // not sure what this needs yet
-      break;
+//    case TRACERS_STATE:
+//      for (i = 0;i < numEffectItems;i++) {
+//        effectItems[i].position = ((float) random(1000) / 1000.0f);
+//        effectItems[i].width = 0.1f;
+//        effectItems[i].speed = ((float) random(100) / 1000.0f);
+//        effectItems[i].right = (i % 2) == 0 ? true : false;
+//        effectItems[i].active = true;
+//        int colourOffset = random(1000 / numEffectItems);
+//        // let's start with a random small offset then space the colours evenly around the hue wheel        
+//        effectItems[i].colour = RgbColor(HsbColor(((float) ((colourOffset + ((1000 * i) / numEffectItems)) % 1000) / 1000.0f), 1.0f, 0.25f));
+//      }            
+//      break;
+//    case TWINKLE_STATE:
+//      // not sure what this needs yet
+//      break;
   }
 }
 
@@ -211,21 +212,23 @@ void Halloween::updateFrame() {
   switch (state) {
     case OFF_STATE:
       break;
+    case TWINKLE_STATE:
     case BEAT_STATE:
       blinkFullStrip(beatLoops, beatArrayLength, beatArray, beatColour);
       break;
     case FLASH_STATE:
       blinkFullStrip(flashLoops, flashArrayLength, flashArray, flashColour);
       break;
+    case TRACERS_STATE:
     case SLIDERS_STATE:
       drawSliders();
       break;
-    case TWINKLE_STATE:
-      drawTwinkle();
-      break;
-    case TRACERS_STATE:
-      drawTracers();
-      break;
+//    case TWINKLE_STATE:
+//      drawTwinkle();
+//      break;
+//    case TRACERS_STATE:
+//      drawTracers();
+//      break;
   }
   strip->Show();
 //  Serial.println("E");
